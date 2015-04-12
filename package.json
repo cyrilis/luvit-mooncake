@@ -1,0 +1,29 @@
+{
+  "name": "mooncake",
+  "version": "0.0.1",
+  "description": "Express like web framework but powered by luvit.",
+  "main": "index.lua",
+  "scripts": {
+    "test": "luvit test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cyrilis/mooncake.git"
+  },
+  "keywords": [
+    "luvit",
+    "lua",
+    "expressjs",
+    "mooncake",
+    "web",
+    "framework",
+    "server",
+    "moonscript"
+  ],
+  "author": "Cyril Hou <houshoushuai@gmail.com> (http://cyrilis.com/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/cyrilis/mooncake/issues"
+  },
+  "homepage": "https://github.com/cyrilis/mooncake"
+}
