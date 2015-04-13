@@ -16,7 +16,7 @@ npm install mooncake
 ## Usage
 
 ```lua
-local MoonCake = require("mooncake")
+local MoonCake = require("./node_modules/mooncake/index")
 local server = MoonCake()
 
 -- route your application
@@ -25,7 +25,13 @@ server:get("/", function(req, res)
   res:send(content, 200)
 end)
 
--- or you can route in this way
+server:start(8080)
+
+```
+
+or you can add your route in this way
+ 
+```lua
 server:route({
   ["get"] = {
     ["/users/:id"] = function(q, s)
@@ -34,21 +40,32 @@ server:route({
   }
 })
 
--- avaialble method for route: "get", "post", "put", "delete"
+```
+
+avaialble method for route: "get", "post", "put", "delete"
+
+```lua
 server:all("/hello", function(q, s)
   s:send("HELLO!")
 end)
+```
 
--- extra method for response: "send", "redirect"
-server:get("/WTF", function(q, s)
-  s:redirect("/hello")
+extra method for response: "send", "redirect"
+
+```lua
+server:get("/admin", function(q, s)
+  -- if user not login then
+  s:redirect("/login")
 end)
 
 server:get("/posts", function(q,s)
   s.send("Post list: ...")
 end)
+```
 
--- get post data via req.body, get query data(such as "/users?page=1") via req.query
+You can get post data via req.body, get query data(such as "/users?page=1") via req.query
+
+```lua
 server:post("/posts/new", function(req,res)
   if req.body.title and req.body.content then
     print("new post")
@@ -57,15 +74,23 @@ server:post("/posts/new", function(req,res)
     res.redirect("/posts")
   end
 end)
+```
 
--- static server for static files! `root` option means mount path, 
--- eg: "/static/" means url path will be "http://example.com/static/file.ext"
+One more thing, static server for static files! 
+
+`root` option means mount path,
+eg: "/static/" means url path will be "http://example.com/static/file.ext"
+
+``` lua
 server:static("./public/", {
   root = "/static/",
   maxAge = 31536000 -- one year
 })
 
--- server start  port
+```
+Start your server:
+
+```
 server:start(8080)
 
 ```
