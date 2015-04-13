@@ -6,8 +6,9 @@ local fs = require('fs')
 local fse = require("./libs/fse")
 local Router = require('./libs/router')
 local mime = require('./libs/mime')
-local utils = require('./libs/utils')
+local helpers = require('./libs/helpers')
 local querystring = require('querystring')
+local Cookie = require("./libs/cookie")
 require("./libs/ansicolors")
 print((" Hello "):bluebg(), (" World "):redbg(), (" from MoonCake "):yellowbg(), (" ! "):greenbg())
 local getQueryFromUrl
@@ -79,7 +80,15 @@ do
         local req, res
         req, res = params[1], params[2]
         req.params = params
-        print(("[" .. tostring(req.method) .. "]"):red(), " " .. tostring(req.url:blue()) .. " -- " .. tostring(req.headers['user-agent']))
+        if req.headers.cookie then
+          local cookie = Cookie:parse(req.headers.cookie)
+          req.cookie = cookie
+        else
+          req.cookie = { }
+        end
+        res:on('finish', function()
+          return helpers.log(req, res)
+        end)
         return fn(req, res, params)
       end
       return self.router:match(method, path, routeFunc)
@@ -131,7 +140,7 @@ do
         local fileType = mime.guess(filePath) or "text/plain; charset=utf-8"
         self:get(mountPath, function(req, res)
           local stat = fs.statSync(filePath)
-          local etag = utils.calcEtag(stat)
+          local etag = helpers.calcEtag(stat)
           local lastModified = os.date("%a, %d %b %Y %H:%M:%S GMT", stat.mtime.sec)
           local header = {
             ["Content-Type"] = fileType,

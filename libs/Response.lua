@@ -15,12 +15,13 @@ end
 
 function ServerResponse:send (data, code, header)
   code = code or self.statusCode or 200
+  self:status(code)
   header = copy(copy(header, self.headers), {
     ["Connection"] = "keep-alive",
     ["Content-Type"] = "text/html; charset=utf-8",
     ["X-Served-By"] = "MoonCake"
   })
-  self:writeHead(code, header)
+  self:writeHead(self.statusCode, header)
   if data then
     self:write(data)
   end

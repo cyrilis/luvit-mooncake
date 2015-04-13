@@ -6,8 +6,9 @@ fs = require 'fs'
 fse = require "./libs/fse"
 Router = require './libs/router'
 mime = require './libs/mime'
-utils = require './libs/utils'
+helpers = require './libs/helpers'
 querystring = require 'querystring'
+Cookie = require "./libs/cookie"
 
 require("./libs/ansicolors")
 
@@ -78,7 +79,13 @@ class MoonCake
     routeFunc = (params)->
       {req,res} = params
       req.params = params
-      print ("[#{req.method}]")\red()," #{req.url\blue()} -- #{req.headers['user-agent']}"
+      if req.headers.cookie
+        cookie = Cookie\parse req.headers.cookie
+        req.cookie = cookie
+      else
+        req.cookie = {}
+      res\on 'finish', ()->
+        helpers.log(req, res)
       fn(req, res, params)
 
     @router\match method, path, routeFunc
@@ -121,7 +128,7 @@ class MoonCake
         -- Following Doesn't work, I Don't konw why.
         -- fs.ReadStream\new(filePath)\pipe res
         stat = fs.statSync(filePath)
-        etag = utils.calcEtag(stat)
+        etag = helpers.calcEtag(stat)
         lastModified = os.date("%a, %d %b %Y %H:%M:%S GMT", stat.mtime.sec)
         header = {
           ["Content-Type"]:   fileType
