@@ -6,6 +6,8 @@ local table = require('table')
 local string = require('string')
 local math = require('math')
 require("./libs/ansicolors")
+local uv = require("uv")
+timer = require("timer")
 
 local digits = {
   "0", "1", "2", "3", "4", "5", "6", "7",
@@ -43,9 +45,12 @@ local function log (req, res)
   else
     stCode = tostring(statusCode):red()
   end
-  return print(currentDate:dim(), " - [", stCode, "]", (" " .. tostring(req.method) .. " "):yellow(), req.url:blue(), (" UserAgent: "):magenta(), req.headers["user-agent"])
+  timer.setImmediate(function()
+    uv.update_time()
+    timeCosted = uv.now() - req.start_time
+    print(currentDate:dim(), " - [", stCode, "]", (" " .. tostring(req.method) .. " "):yellow(), (tostring(timeCosted) .. "ms "):cyan(), req.url:blue(), (" UserAgent: "):magenta(), req.headers["user-agent"])
+  end)
 end
-
 
 local function calcEtag(stat)
   return (not stat.is_file and 'W/' or '') ..

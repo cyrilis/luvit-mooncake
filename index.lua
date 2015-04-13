@@ -9,6 +9,7 @@ local mime = require('./libs/mime')
 local helpers = require('./libs/helpers')
 local querystring = require('querystring')
 local Cookie = require("./libs/cookie")
+local uv = require("uv")
 require("./libs/ansicolors")
 print((" Hello "):bluebg(), (" World "):redbg(), (" from MoonCake "):yellowbg(), (" ! "):greenbg())
 local getQueryFromUrl
@@ -51,6 +52,10 @@ do
         }
         local querys = getQueryFromUrl(url)
         req.query = querys
+        req.start_time = uv.now()
+        res:on('finish', function()
+          return helpers.log(req, res)
+        end)
         if method ~= "get" then
           local body = ""
           req:on("data", function(chunk)
@@ -86,9 +91,6 @@ do
         else
           req.cookie = { }
         end
-        res:on('finish', function()
-          return helpers.log(req, res)
-        end)
         return fn(req, res, params)
       end
       return self.router:match(method, path, routeFunc)

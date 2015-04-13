@@ -9,6 +9,7 @@ mime = require './libs/mime'
 helpers = require './libs/helpers'
 querystring = require 'querystring'
 Cookie = require "./libs/cookie"
+uv = require "uv"
 
 require("./libs/ansicolors")
 
@@ -58,6 +59,9 @@ class MoonCake
       params = {req,res}
       querys = getQueryFromUrl(url)
       req.query = querys
+      req.start_time = uv.now()
+      res\on 'finish', ()->
+        helpers.log(req, res)
       if method ~= "get"
         body = ""
         req\on "data", (chunk)->
@@ -84,8 +88,6 @@ class MoonCake
         req.cookie = cookie
       else
         req.cookie = {}
-      res\on 'finish', ()->
-        helpers.log(req, res)
       fn(req, res, params)
 
     @router\match method, path, routeFunc
