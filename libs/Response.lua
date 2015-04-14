@@ -1,4 +1,7 @@
 ServerResponse = require("http").ServerResponse
+template = require("./resty-template")
+path = require("path")
+env = require("env")
 
 local function copy(a, b)
   a = a or {}
@@ -28,6 +31,17 @@ function ServerResponse:send (data, code, header)
   self:finish()
 end
 
+function ServerResponse:render(tpl, data)
+  callerSource = debug.getinfo(2).source
+  filePath = path.resolve(path.dirname(callerSource), tpl)
+  key = "no-cache"
+  if env.get("PROD") == "TRUE" then
+    key = nil
+  end
+  tpl = template.render(filePath, data, key)
+  self:send(tpl)
+end
+
 function ServerResponse:status (statusCode)
   self.statusCode = statusCode
   return self
@@ -49,19 +63,4 @@ end
 
 function ServerResponse:not_modified(header)
   self:send(nil, 304, header)
-end
-
-function ServerResponse:render(filename, data, options)
-  data = data or {}
-  options = options or {}
-  render(filename, data, function (err, html)
-    if err then
-      self:fail(err.message or err)
-    else
-      self:send(html, 200, {
-        ['Content-Type'] = 'text/html; charset=UTF-8',
-        ['Content-Length'] = #html
-      })
-    end
-  end)
 end

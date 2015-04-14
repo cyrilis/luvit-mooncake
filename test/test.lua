@@ -1,9 +1,13 @@
-local MoonCake = require("./index")
+local MoonCake = require("../")
 local server = MoonCake()
 
 server:match("get", "/", function(req, res)
-  local content = "<p>Hello world from MoonCake</p>"
-  res:send(content, 200)
+  res:render("./views/index.html", {
+    title= "Hello world from MoonCake!",
+    message = "You are welcome!",
+    names = {"Tom", "Jerry", "Wof"},
+    jquery  = '<script src="js/jquery.min.js"></script>'
+  })
 end)
 
 server:route({

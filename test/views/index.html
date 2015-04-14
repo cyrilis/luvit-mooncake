@@ -1,0 +1,8 @@
+{(./header.html)}
+<h1>{{message}}</h1>
+<ul>
+{% for _, name in ipairs(names) do %}
+    <li>{{name}}</li>
+{% end %}
+</ul>
+{(./footer.html)}

@@ -127,6 +127,10 @@ end
 old_print = print
 _G.print = function(...)
   allString = true
+  _temp = ...
+  if _temp == nil then
+    return old_print(...)
+  end
   for _, value in pairs({...}) do
     if type(value) ~= "string" then
       allString = false
