@@ -1,5 +1,5 @@
 # Mooncake
----------
+----------------------------------------------
 
 **A web framework powered by luvit.**
 
@@ -50,7 +50,9 @@ server:all("/hello", function(q, s)
 end)
 ```
 
-extra method for response: "send", "redirect"
+extra method for response: "send", "redirect", "render"
+
+You can get more about render template syntax at: https://github.com/bungle/lua-resty-template/
 
 ```lua
 server:get("/admin", function(q, s)
@@ -59,7 +61,8 @@ server:get("/admin", function(q, s)
 end)
 
 server:get("/posts", function(q,s)
-  s.send("Post list: ...")
+  -- get post list, render template.
+  s:render("./view/post-list.html", {posts = DB.find("posts")})
 end)
 ```
 
@@ -86,13 +89,12 @@ server:static("./public/", {
   root = "/static/",
   maxAge = 31536000 -- one year
 })
-
 ```
+
 Start your server:
 
 ```
 server:start(8080)
-
 ```
 
 ## Licence
