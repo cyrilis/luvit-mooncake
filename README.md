@@ -16,7 +16,7 @@ npm install mooncake
 ## Usage
 
 ```lua
-local MoonCake = require("./node_modules/mooncake/index")
+local MoonCake = require("./node_modules/mooncake")
 local server = MoonCake()
 
 -- route your application
