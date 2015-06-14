@@ -27,7 +27,7 @@ server:get("/WTF", function(q, s)
 end)
 
 server:get("/posts", function(q,s)
-  s.send("Post list: ...")
+  s:send("Post list: ...")
 end)
 
 server:post("/posts/new", function(q,s)
@@ -35,7 +35,7 @@ server:post("/posts/new", function(q,s)
     print("new post")
     -- Save to DB:
     -- DB.save("post", {title = q.body.title, content = q.body.content})
-    s.redirect("/posts")
+    s:redirect("/posts")
   end
 end)
 
