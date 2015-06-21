@@ -2,7 +2,6 @@ require("./libs/Response")
 local http = require("http")
 local https = require("https")
 local pathJoin = require('luvi').path.join
-local path = require("path")
 local fs = require('fs')
 local fse = require("./libs/fse")
 local Router = require('./libs/router')
@@ -135,7 +134,7 @@ do
       end
       options.root = options.root or "/"
       print("Serving Directory: " .. fileDir)
-      local dirFiles = fse.readDirFile(path.resolve(module.dir, fileDir))
+      local dirFiles = fse.readDirFile(fileDir)
       local maxAge = options.maxAge or 15552000
       for key, _ in pairs(dirFiles) do
         local mountPath = pathJoin(options.root, key)

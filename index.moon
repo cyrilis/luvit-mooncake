@@ -2,7 +2,6 @@ require "./libs/Response"
 http = require "http"
 https = require "https"
 pathJoin = require('luvi').path.join
-path = require("path")
 fs = require 'fs'
 fse = require "./libs/fse"
 Router = require './libs/router'
@@ -121,7 +120,7 @@ class MoonCake
   static: (fileDir, options = {})=>
     options.root = options.root or "/"
     print "Serving Directory: "..fileDir
-    dirFiles = fse.readDirFile path.resolve(module.dir, fileDir)
+    dirFiles = fse.readDirFile fileDir
     maxAge = options.maxAge or 15552000
     for key, _ in pairs dirFiles
       mountPath = pathJoin(options.root, key)
