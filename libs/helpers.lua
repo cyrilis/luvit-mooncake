@@ -5,7 +5,7 @@ local http = require('http')
 local table = require('table')
 local string = require('string')
 local math = require('math')
-require("./libs/ansicolors")
+require("./ansicolors")
 local uv = require("uv")
 timer = require("timer")
 
