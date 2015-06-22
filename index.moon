@@ -1,7 +1,7 @@
 require "./libs/Response"
 http = require "http"
 https = require "https"
-pathJoin = require('luvi').path.join
+path = require("path")
 fs = require 'fs'
 fse = require "./libs/fse"
 Router = require './libs/router'
@@ -42,8 +42,8 @@ class MoonCake
     fn = @fn
     if @isHttps == true
       keyConfig = {
-        key: fs\readFileSync(pathJoin(@keyPath, "key.pem")),
-        cert: fs\readFileSync(pathJoin(@keyPath, "cert.pem"))
+        key: fs\readFileSync(path.join(@keyPath, "key.pem")),
+        cert: fs\readFileSync(path.join(@keyPath, "cert.pem"))
       }
       https\createServer(keyConfig, fn)\listen(port)
     else
@@ -121,11 +121,11 @@ class MoonCake
     options.root = options.root or "/"
     print "Serving Directory:" .. fileDir
     maxAge = options.maxAge or 15552000
-    routePath = pathJoin(options.root, ":file")
+    routePath = path.join(options.root, ":file")
     notFoundFunc = @notFoundFunc
     @get routePath, (req, res)->
-      _, _, trimdPath, _ = req.params.file\find("([^?]*)(?.*)")
-      filePath = pathJoin(fileDir, trimdPath)
+      trimdPath = req.params.file\match("([^?]*)(?*)(.*)")
+      filePath = path.resolve(fileDir, trimdPath)
       stat = fs.statSync(filePath)
       if not(stat)
         return notFoundFunc(req, res)

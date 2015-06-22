@@ -1,7 +1,7 @@
 require("./libs/Response")
 local http = require("http")
 local https = require("https")
-local pathJoin = require('luvi').path.join
+local path = require("path")
 local fs = require('fs')
 local fse = require("./libs/fse")
 local Router = require('./libs/router')
@@ -31,8 +31,8 @@ do
       local fn = self.fn
       if self.isHttps == true then
         local keyConfig = {
-          key = fs:readFileSync(pathJoin(self.keyPath, "key.pem")),
-          cert = fs:readFileSync(pathJoin(self.keyPath, "cert.pem"))
+          key = fs:readFileSync(path.join(self.keyPath, "key.pem")),
+          cert = fs:readFileSync(path.join(self.keyPath, "cert.pem"))
         }
         https:createServer(keyConfig, fn):listen(port)
       else
@@ -135,12 +135,11 @@ do
       options.root = options.root or "/"
       print("Serving Directory:" .. fileDir)
       local maxAge = options.maxAge or 15552000
-      local routePath = pathJoin(options.root, ":file")
+      local routePath = path.join(options.root, ":file")
       local notFoundFunc = self.notFoundFunc
       return self:get(routePath, function(req, res)
-        local _, trimdPath
-        _, _, trimdPath, _ = req.params.file:find("([^?]*)(?.*)")
-        local filePath = pathJoin(fileDir, trimdPath)
+        local trimdPath = req.params.file:match("([^?]*)(?*)(.*)")
+        local filePath = path.resolve(fileDir, trimdPath)
         local stat = fs.statSync(filePath)
         if not (stat) then
           return notFoundFunc(req, res)
