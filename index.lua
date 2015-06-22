@@ -133,33 +133,36 @@ do
         options = { }
       end
       options.root = options.root or "/"
-      print("Serving Directory: " .. fileDir)
-      local dirFiles = fse.readDirFile(fileDir)
+      print("Serving Directory:" .. fileDir)
       local maxAge = options.maxAge or 15552000
-      for key, _ in pairs(dirFiles) do
-        local mountPath = pathJoin(options.root, key)
-        local filePath = pathJoin(fileDir, key)
+      local routePath = pathJoin(options.root, ":file")
+      local notFoundFunc = self.notFoundFunc
+      return self:get(routePath, function(req, res)
+        local _, trimdPath
+        _, _, trimdPath, _ = req.params.file:find("([^?]*)(?.*)")
+        local filePath = pathJoin(fileDir, trimdPath)
+        local stat = fs.statSync(filePath)
+        if not (stat) then
+          return notFoundFunc(req, res)
+        end
         local fileType = mime.guess(filePath) or "text/plain; charset=utf-8"
-        self:get(mountPath, function(req, res)
-          local stat = fs.statSync(filePath)
-          local etag = helpers.calcEtag(stat)
-          local lastModified = os.date("%a, %d %b %Y %H:%M:%S GMT", stat.mtime.sec)
-          local header = {
-            ["Content-Type"] = fileType,
-            ["Content-Length"] = stat.size,
-            ['ETag'] = etag,
-            ['Last-Modified'] = lastModified,
-            ["Cache-Control"] = "public, max-age=" .. tostring(maxAge)
-          }
-          local statusCode = 200
-          local content = fs.readFileSync(filePath)
-          if req.headers['if-none-match'] == lastModified or req.headers['if-modified-since'] == lastModified then
-            statusCode = 304
-            content = nil
-          end
-          return res:send(content, statusCode, header)
-        end)
-      end
+        local etag = helpers.calcEtag(stat)
+        local lastModified = os.date("%a, %d %b %Y %H:%M:%S GMT", stat.mtime.sec)
+        local header = {
+          ["Content-Type"] = fileType,
+          ["Content-Length"] = stat.size,
+          ['ETag'] = etag,
+          ['Last-Modified'] = lastModified,
+          ["Cache-Control"] = "public, max-age=" .. tostring(maxAge)
+        }
+        local statusCode = 200
+        local content = fs.readFileSync(filePath)
+        if req.headers['if-none-match'] == lastModified or req.headers['if-modified-since'] == lastModified then
+          statusCode = 304
+          content = nil
+        end
+        return res:send(content, statusCode, header)
+      end)
     end
   }
   _base_0.__index = _base_0

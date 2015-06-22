@@ -119,31 +119,32 @@ class MoonCake
 
   static: (fileDir, options = {})=>
     options.root = options.root or "/"
-    print "Serving Directory: "..fileDir
-    dirFiles = fse.readDirFile fileDir
+    print "Serving Directory:" .. fileDir
     maxAge = options.maxAge or 15552000
-    for key, _ in pairs dirFiles
-      mountPath = pathJoin(options.root, key)
-      filePath = pathJoin(fileDir, key)
+    routePath = pathJoin(options.root, ":file")
+    notFoundFunc = @notFoundFunc
+    @get routePath, (req, res)->
+      _, _, trimdPath, _ = req.params.file\find("([^?]*)(?.*)")
+      filePath = pathJoin(fileDir, trimdPath)
+      stat = fs.statSync(filePath)
+      if not(stat)
+        return notFoundFunc(req, res)
       fileType = mime.guess(filePath) or "text/plain; charset=utf-8"
-      @get mountPath, (req, res)->
-        -- Following Doesn't work, I Don't konw why.
-        -- fs.ReadStream\new(filePath)\pipe res
-        stat = fs.statSync(filePath)
-        etag = helpers.calcEtag(stat)
-        lastModified = os.date("%a, %d %b %Y %H:%M:%S GMT", stat.mtime.sec)
-        header = {
-          ["Content-Type"]:   fileType
-          ["Content-Length"]: stat.size
-          ['ETag']:           etag
-          ['Last-Modified']: lastModified
-          ["Cache-Control"]: "public, max-age=#{maxAge}"
-        }
-        statusCode = 200
-        content = fs.readFileSync(filePath)
-        if req.headers['if-none-match'] == lastModified or req.headers['if-modified-since'] == lastModified
-          statusCode = 304
-          content = nil
-        res\send(content, statusCode, header)
+      etag = helpers.calcEtag(stat)
+      lastModified = os.date("%a, %d %b %Y %H:%M:%S GMT", stat.mtime.sec)
+      header = {
+        ["Content-Type"]:   fileType
+        ["Content-Length"]: stat.size
+        ['ETag']:           etag
+        ['Last-Modified']: lastModified
+        ["Cache-Control"]: "public, max-age=#{maxAge}"
+      }
+      statusCode = 200
+      content = fs.readFileSync(filePath)
+      if req.headers['if-none-match'] == lastModified or req.headers['if-modified-since'] == lastModified
+        statusCode = 304
+        content = nil
+      res\send(content, statusCode, header)
+
 
 return MoonCake
