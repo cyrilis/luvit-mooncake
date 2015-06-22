@@ -59,7 +59,7 @@ class MoonCake
       params = {req,res}
       querys = getQueryFromUrl(url)
       req.query = querys
-      req.start_time = uv.now()
+      req.start_time = helpers.getTime()
       res\on 'finish', ()->
         helpers.log(req, res)
       if method ~= "get"

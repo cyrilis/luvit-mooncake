@@ -29,6 +29,24 @@ local function numToBase(num, base)
   return table.concat(parts)
 end
 
+-- microsecond precision
+local ffi = require("ffi")
+ffi.cdef[[
+	typedef long time_t;
+
+ 	typedef struct timeval {
+		time_t tv_sec;
+		time_t tv_usec;
+	} timeval;
+
+	int gettimeofday(struct timeval* t, void* tzp);
+]]
+
+local gettimeofday_struct = ffi.new("timeval")
+local function getTime()
+ 	ffi.C.gettimeofday(gettimeofday_struct, nil)
+ 	return tonumber(gettimeofday_struct.tv_sec) * 1000 + tonumber(gettimeofday_struct.tv_usec / 1000)
+end
 
 local function log (req, res)
   local currentDate = os.date("[%Y-%m-%d %H:%M:%S]"):dim()
@@ -47,7 +65,7 @@ local function log (req, res)
   end
   timer.setImmediate(function()
     uv.update_time()
-    timeCosted = uv.now() - req.start_time
+    timeCosted = getTime() - req.start_time
     print(currentDate:dim(), " - [", stCode, "]", (" " .. tostring(req.method) .. " "):yellow(), (tostring(timeCosted) .. "ms "):cyan(), req.url:blue(), (" UserAgent: "):magenta(), req.headers["user-agent"])
   end)
 end
@@ -207,5 +225,6 @@ return {
 	hasBody = hasBody,
   copy = copy,
   calcEtag = calcEtag,
-  log = log
+  log = log,
+  getTime = getTime
 }

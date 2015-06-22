@@ -52,7 +52,7 @@ do
         }
         local querys = getQueryFromUrl(url)
         req.query = querys
-        req.start_time = uv.now()
+        req.start_time = helpers.getTime()
         res:on('finish', function()
           return helpers.log(req, res)
         end)
