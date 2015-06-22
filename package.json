@@ -1,6 +1,6 @@
 {
   "name": "mooncake",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Express like web framework but powered by luvit.",
   "main": "index.lua",
   "scripts": {
