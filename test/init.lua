@@ -1,5 +1,5 @@
 local MoonCake = require("../")
-local server = MoonCake()
+local server = MoonCake:new()
 
 server:match("get", "/", function(req, res)
   res:render("./views/index.html", {
