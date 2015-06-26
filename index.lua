@@ -60,6 +60,25 @@ function MoonCake:start (port)
     print(("Moon"):redbg(),("Cake"):yellowbg()," Server Listening at http://localhost:" .. tostring(port) .. "/")
 end
 
+function MoonCake:use(fn)
+    self._use = self._use or {}
+    table.insert(self._use, fn)
+end
+
+function MoonCake:useit(req, res, callback)
+    local function _useit(req, res)
+        local next = table.remove(self._use or {})
+        if next then
+            next(req, res, function()
+                _useit(req, res)
+            end)
+        else
+            callback(req, res)
+        end
+    end
+    _useit(req, res)
+end
+
 function MoonCake:genRoute ()
     local that = self
     self.fn = function(req, res)
@@ -79,20 +98,25 @@ function MoonCake:genRoute ()
                 body = body..chunk
             end)
             req:on("end", function()
-                local bodyObj = querystring.parse("bdoy")
+                local bodyObj = querystring.parse(body)
                 req.body = bodyObj or {}
+                that:useit(req, res, function(req, res)
+                    local result, err = that.router:execute(method, url, params)
+                    if not result then
+                        print(err)
+                        return that:notFound(req, res)
+                    end
+                end)
+            end)
+        else
+            req.body = {}
+            that:useit(req, res, function(req, res)
                 local result, err = that.router:execute(method, url, params)
                 if not result then
                     print(err)
-                    return that:notFound(req, res)
+                    that:notFound(req, res)
                 end
             end)
-        else
-            local result, err = that.router:execute(method, url, params)
-            if not result then
-                print(err)
-                that:notFound(req, res)
-            end
         end
     end
 end
