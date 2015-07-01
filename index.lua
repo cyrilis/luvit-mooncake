@@ -92,6 +92,12 @@ function MoonCake:genRoute ()
         res:on("finish", function()
             helpers.log(req, res)
         end)
+        if req.headers.cookie then
+            local cookie = Cookie:parse(req.headers.cookie)
+            req.cookie = cookie or {}
+        else
+            req.cookie = {}
+        end
         if method ~= "get" then
             local body = ""
             req:on("data", function(chunk)
@@ -125,12 +131,6 @@ function MoonCake:match (method, path, fn)
     local routeFunc = function(params)
         local req, res = params[1], params[2]
         req.params = params
-        if req.headers.cookie then
-            local cookie = Cookie:parse(req.headers.cookie)
-            req.cookie = cookie
-        else
-            req.cookie = {}
-        end
         fn(req, res, params)
     end
     self.router:match(method, path, routeFunc)
