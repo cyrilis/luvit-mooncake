@@ -66,8 +66,10 @@ function MoonCake:use(fn)
 end
 
 function MoonCake:useit(req, res, callback)
+
+    local funcArray = helpers.copy(self._use or {})
     local function _useit(req, res)
-        local next = table.remove(self._use or {})
+        local next = table.remove(funcArray or {})
         if next then
             next(req, res, function()
                 _useit(req, res)
@@ -106,6 +108,9 @@ function MoonCake:genRoute ()
             req:on("end", function()
                 local bodyObj = querystring.parse(body)
                 req.body = bodyObj or {}
+                if req.body._method then
+                    method = req.body._method
+                end
                 that:useit(req, res, function(req, res)
                     local result, err = that.router:execute(method, url, params)
                     if not result then

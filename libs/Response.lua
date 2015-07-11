@@ -3,6 +3,13 @@ template = require("./resty-template")
 path = require("path")
 env = require("env")
 
+extend = function(obj, with_obj)
+  for k, v in pairs(with_obj) do
+    obj[k] = v
+  end
+  return obj
+end
+
 local function copy(a, b)
   a = a or {}
   b = b or {}
@@ -38,7 +45,10 @@ function ServerResponse:render(tpl, data)
   if env.get("PROD") == "TRUE" then
     key = nil
   end
-  tpl = template.render(filePath, data, key)
+  local localData = self._local or {}
+  local flashData = {flash = self._flash or {}}
+  local renderData = extend(extend(localData, data or {}), flashData)
+  tpl = template.render(filePath, renderData, key)
   self:send(tpl)
 end
 
@@ -52,6 +62,10 @@ function ServerResponse:redirect(url, code)
   self:status(code):setHeader("Location", url)
   self:send()
   return self
+end
+
+function ServerResponse:flash(type, flash)
+  self._flash = {type = type, falsh = flash }
 end
 
 function ServerResponse:fail(reason)

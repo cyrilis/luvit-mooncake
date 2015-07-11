@@ -223,8 +223,10 @@ return {
 	roundToDecimals = roundToDecimals,
 	supportMethod = supportMethod,
 	hasBody = hasBody,
-  copy = copy,
-  calcEtag = calcEtag,
-  log = log,
-  getTime = getTime
+  	copy = copy,
+  	calcEtag = calcEtag,
+  	log = log,
+  	getTime = getTime,
+	extend = module.exports.extend,
+	extend_force = module.exports.extend_force
 }
