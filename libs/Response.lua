@@ -1,4 +1,5 @@
 ServerResponse = require("http").ServerResponse
+ServerResponse.flashData = {}
 template = require("./resty-template")
 path = require("path")
 env = require("env")
@@ -24,6 +25,13 @@ local function copy(a, b)
 end
 
 function ServerResponse:send (data, code, header)
+  if self._headerSent then
+    p("------------------------------")
+    p("Error", "Header Has Been Sent.")
+    p("------------------------------")
+    return false
+  end
+  self._headerSent = true
   code = code or self.statusCode or 200
   self:status(code)
   header = copy(copy(header, self.headers), {
@@ -39,14 +47,20 @@ function ServerResponse:send (data, code, header)
 end
 
 function ServerResponse:render(tpl, data)
-  callerSource = debug.getinfo(2).source
-  filePath = path.resolve(path.dirname(callerSource), tpl)
-  key = "no-cache"
+  local callerSource = debug.getinfo(2).source
+  local filePath = path.resolve(path.dirname(callerSource), tpl)
+  local key = "no-cache"
   if env.get("PROD") == "TRUE" then
     key = nil
   end
   local localData = self._local or {}
-  local flashData = {flash = self._flash or {}}
+
+  local flashData = { flash = nil}
+  if self.req.session and self.req.session.sid then
+    local sid = self.req.session.sid
+    flashData =  {flash = ServerResponse.flashData[sid] or {} }
+    ServerResponse.flashData[sid] = nil
+  end
   local renderData = extend(extend(localData, data or {}), flashData)
   tpl = template.render(filePath, renderData, key)
   self:send(tpl)
@@ -65,7 +79,12 @@ function ServerResponse:redirect(url, code)
 end
 
 function ServerResponse:flash(type, flash)
-  self._flash = {type = type, falsh = flash }
+  local sid
+  if self.req.session and self.req.session.sid then
+    sid = self.req.session.sid
+    ServerResponse.flashData[sid] = ServerResponse.flashData[sid] or {}
+    ServerResponse.flashData[sid][type] = flash
+  end
 end
 
 function ServerResponse:fail(reason)
