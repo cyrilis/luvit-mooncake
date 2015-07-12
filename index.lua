@@ -42,7 +42,8 @@ function MoonCake:listen (port)
     return self:start(port)
 end
 
-function MoonCake:start (port)
+function MoonCake:start (port, host)
+    host = host or "127.0.0.1"
     if port == nil then
         port = 8080
     end
@@ -53,9 +54,9 @@ function MoonCake:start (port)
             key = fs:readFileSync(path.join(self.keyPath, "key.pem")),
             cert = fs:readFileSync(path.join(self.keyPath, "cert.pem"))
         }
-        http.createServer(keyConfig, fn):listen(port)
+        http.createServer(keyConfig, fn):listen(port, host)
     else
-        http.createServer(fn):listen(port)
+        http.createServer(fn):listen(port, host)
     end
     print(("Moon"):redbg(),("Cake"):yellowbg()," Server Listening at http://localhost:" .. tostring(port) .. "/")
 end

@@ -44,6 +44,7 @@ function ServerResponse:send (data, code, header)
     self:write(data)
   end
   self:finish()
+  collectgarbage()
 end
 
 function ServerResponse:render(tpl, data)
@@ -85,6 +86,11 @@ function ServerResponse:flash(type, flash)
     ServerResponse.flashData[sid] = ServerResponse.flashData[sid] or {}
     ServerResponse.flashData[sid][type] = flash
   end
+end
+
+function ServerResponse:locals(data)
+  local localData = self._local or {}
+  self._local = extend(localData, data)
 end
 
 function ServerResponse:fail(reason)
