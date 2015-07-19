@@ -17,6 +17,15 @@ function Cookie.meta.__tostring ()
 	return '<Cookie>'
 end
 
+local function trim(str, what)
+	if what == nil then
+		what = '%s+'
+	end
+	str = string.gsub(str, '^' .. what, '')
+	str = string.gsub(str, what .. '$', '')
+	return str
+end
+
 -- Serialize a "name-value" pair into a cookie string suitable for http headers.
 -- An optional options table specifies cookie parameters.
 -- @param {String} name
@@ -56,7 +65,7 @@ function Cookie:parse (str, options)
 
 		if not eqIndex then return end
 
-		local key = pair:sub(1, eqIndex-1)
+		local key = trim(pair:sub(1, eqIndex-1))
 		local val = pair:sub(eqIndex+1, #pair)
 
 		-- quoted values
