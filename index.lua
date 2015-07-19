@@ -183,27 +183,7 @@ function MoonCake:static (fileDir, options)
     return self:get(routePath, function(req, res)
         local trimdPath = req.params.file:match("([^?]*)(?*)(.*)")
         local filePath = path.resolve(fileDir, trimdPath)
-        local stat = fs.statSync(filePath)
-        if not(stat) then
-            return notFoundFunc(req, res)
-        end
-        local fileType = mime.guess(filePath) or "text/plain: charset=utf8"
-        local etag = helpers.calcEtag(stat)
-        local lastModified = os.date("%a, %d %b %Y %H:%M:%S GMT", stat.mtime.sec)
-        local header = {
-            ["Content-Type"] = fileType,
-            ["Content-Length"] = stat.size,
-            ['ETag'] = etag,
-            ['Last-Modified'] = lastModified,
-            ["Cache-Control"] = "public, max-age=" .. tostring(maxAge)
-        }
-        local statusCode = 200
-        local content = fs.readFileSync(filePath)
-        if req.headers["if-none-match"] == lastModified or req.headers["if-modified-since"] == lastModified then
-            statusCode = 304
-            content = nil
-        end
-        return res:send(content, statusCode, header)
+        res:sendFile(filePath)
     end)
 end
 

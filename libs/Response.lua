@@ -1,8 +1,12 @@
-ServerResponse = require("http").ServerResponse
+local ServerResponse = require("http").ServerResponse
 ServerResponse.flashData = {}
-template = require("./resty-template")
-path = require("path")
-env = require("env")
+local template = require("./resty-template")
+local path = require("path")
+local env = require("env")
+local fs = require("fs")
+
+local mime = require('./mime')
+local helpers = require('./helpers')
 
 extend = function(obj, with_obj)
   for k, v in pairs(with_obj) do
@@ -70,6 +74,34 @@ end
 function ServerResponse:status (statusCode)
   self.statusCode = statusCode
   return self
+end
+
+function ServerResponse:sendFile(filePath, headers)
+  headers = headers or {}
+  local maxAge = headers.maxAge or 15552000 -- half a year
+  local callerSource = debug.getinfo(2).source
+  filePath = path.resolve(path.dirname(callerSource), filePath)
+  local stat = fs.statSync(filePath)
+  if not(stat) then
+    return self:send("<p>Can't get "..filePath .. "</p>", 404)
+  end
+  local fileType = mime.guess(filePath) or "text/plain: charset=utf8"
+  local etag = helpers.calcEtag(stat)
+  local lastModified = os.date("%a, %d %b %Y %H:%M:%S GMT", stat.mtime.sec)
+  local header = extend({
+    ["Content-Type"] = fileType,
+    ["Content-Length"] = stat.size,
+    ['ETag'] = etag,
+    ['Last-Modified'] = lastModified,
+    ["Cache-Control"] = "public, max-age=" .. tostring(maxAge)
+  }, headers or {})
+  local statusCode = 200
+  local content = fs.readFileSync(filePath)
+  if self.req.headers["if-none-match"] == etag or self.req.headers["if-modified-since"] == lastModified then
+    statusCode = 304
+    content = nil
+  end
+  self:send(content, statusCode, header)
 end
 
 function ServerResponse:redirect(url, code)
