@@ -10,7 +10,8 @@ local helpers = require('./libs/helpers')
 local querystring = require('querystring')
 local Cookie = require("./libs/cookie")
 require("./libs/ansicolors")
-print((" Hello "):bluebg(), (" World "):redbg(), (" from MoonCake "):yellowbg(), (" ! "):greenbg())
+
+d((" Hello "):bluebg(), (" World "):redbg(), (" from MoonCake "):yellowbg(), (" ! "):greenbg())
 
 local Emitter = require("core").Emitter
 
@@ -58,7 +59,7 @@ function MoonCake:start (port, host)
     else
         http.createServer(fn):listen(port, host)
     end
-    print(("Moon"):redbg(),("Cake"):yellowbg()," Server Listening at http://localhost:" .. tostring(port) .. "/")
+    d(("Moon"):redbg(),("Cake"):yellowbg()," Server Listening at http://localhost:" .. tostring(port) .. "/")
 end
 
 function MoonCake:use(fn)
@@ -103,15 +104,32 @@ function MoonCake:genRoute ()
         end
         if method ~= "get" then
             local body = ""
+            local file = ""
             req:on("data", function(chunk)
-                body = body..chunk
+                if string.find(req.headers['content-type'], "multipart/form-data", 1, true) then
+                    file = file..chunk
+                else
+                    body = body..chunk
+                end
             end)
             req:on("end", function()
-                local bodyObj = querystring.parse(body)
-                req.body = bodyObj or {}
-                if req.body._method then
-                    method = req.body._method
+
+                if string.find(req.headers['content-type'], "multipart/form-data", 1, true) then
+                    req.files = req.files or {}
+                    local tempname = os.tmpname()
+                    fs.writeFileSync(tempname, file)
+                    req.files[tempname] = { path = tempname }
+                else
+                    local bodyObj = querystring.parse(body)
+                    req.body = bodyObj or {}
+                    if req.body._method then
+                        method = req.body._method:lower()
+                    end
                 end
+
+                req.body = req.body or {}
+                req.files = req.files or {}
+
                 that:useit(req, res, function(req, res)
                     local result, err = that.router:execute(method, url, params)
                     if not result then

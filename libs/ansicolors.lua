@@ -125,7 +125,7 @@ function string:print()
 end
 
 old_print = print
-_G.print = function(...)
+_G.d = function(...)
   allString = true
   _temp = ...
   if _temp == nil then

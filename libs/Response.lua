@@ -4,6 +4,7 @@ local template = require("./resty-template")
 local path = require("path")
 local env = require("env")
 local fs = require("fs")
+local JSON = require("json")
 
 local mime = require('./mime')
 local helpers = require('./helpers')
@@ -109,6 +110,13 @@ function ServerResponse:redirect(url, code)
   self:status(code):setHeader("Location", url)
   self:send()
   return self
+end
+
+function ServerResponse:json(obj, code, headers)
+  headers = copy(headers, {
+    ["Content-Type"] = "application/json"
+  })
+  self:send(JSON.stringify(obj), code, headers)
 end
 
 function ServerResponse:flash(type, flash)
