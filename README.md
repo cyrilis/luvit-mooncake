@@ -32,7 +32,7 @@ server:start(8080)
 ###Server
 - #### create server
   - create a http server:
-  ```
+  ```lua
   Mooncake = require("mooncake")
   local sever = Mooncake()
   ```
@@ -49,7 +49,7 @@ server:start(8080)
 - ####server:use(func)
   Use the given middleware function,
   eg:
-  ```
+  ```lua
   server:use(function(req, res,next)
       res:locals({first = true})
   end)
