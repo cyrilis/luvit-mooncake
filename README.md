@@ -47,13 +47,13 @@ server:start(8080)
   ```
   
 - ###server:use(func)
-Use the given middleware function,
-eg:
-```
-server:use(function(req, res,next)
-	res:locals({first = true})
-end)
-```
+  Use the given middleware function,
+  eg:
+  ```
+  server:use(function(req, res,next)
+      res:locals({first = true})
+  end)
+  ```
 
 - ###server:static()
   **`server:static(fileDir, options)`**
@@ -208,14 +208,12 @@ end)
 ###Response
 `ServerResponse` has several extra methods:
 
-- ###`:send()`
+- ####res:send (data, code, header)
   This method performs a myriad of useful tasks for simple non-streaming responses such as automatically assigning the Content-Length unless previously defined and providing automatic `HEAD` and `HTTP` cache freshness support.
   
-  **`ServerResponse:send (data, code, header)`**
-  
-  - data: string, content string to render, **required**, eg: "Hello World!"
-  - code: number, status code,  eg: 200
-  - header: table, Custom header, eg: `{['Content-Type'] = 'text/plain', ["Content-Length"] = 1000}`
+  - `data`: string, content string to render, **required**, eg: "Hello World!"
+  - `code`: number, status code,  eg: 200
+  - `header`: table, Custom header, eg: `{['Content-Type'] = 'text/plain', ["Content-Length"] = 1000}`
   
   eg:
   
@@ -225,13 +223,12 @@ end)
   end)
   ```
 
-- ###`:render()`
+- ####res:render(tpl, data)
 
   Render a view with provided data. Render Engine from: https://github.com/bungle/lua-resty-template/ .
   
-  **`ServerResponse:render(tpl, data)`**
-  - tpl: string, path to template file, **required**,eg: `"views/post.html"`
-  - data: table, render data, **required**, eg: `{["status" = "success"]}`
+  - `tpl`: string, path to template file, **required**,eg: `"views/post.html"`
+  - `data`: table, render data, **required**, eg: `{["status" = "success"]}`
   
   eg:
   
@@ -260,12 +257,11 @@ end)
   You can learn more about render template syntax at: https://github.com/bungle/lua-resty-template/
   
   
-- ###`:redirect()`
+- ####res:redirect(url, code)
   Redirect to the given url with optional status code defaulting to 302 “Found”.
   
-  **`ServerResponse:redirect(url, code)`**
-  - url: string, url for redirct, **required**, eg: "/404"
-  - code: number, status code, eg: 200
+  - `url`: string, url for redirct, **required**, eg: "/404"
+  - `code`: number, status code, eg: 200
   
   eg:
   
@@ -278,12 +274,9 @@ end)
 	res:render("404.html", 404)
   end)
   ```
-- ###`:status()`
+- ####res:status(statusCode)
   Chainable alias of luvit `res.statusCode=`.
-  
-  **`ServerResponse:status (statusCode)`**
-
-  - statusCode: number, required, status code, eg: 403
+  - `statusCode`: number, required, status code, eg: 403
 
   eg:
 
@@ -292,27 +285,22 @@ end)
     res:status(404):render("404.html")
   end)
   ```
-- ###`:sendFile()`
-  ```
-  ServerResponse:sendFile(filePath, headers)
-  ```
-  - filePath: string, **required**, send file directly. eg: `res:sendFile("files/preview.pdf")`
-  - headers: table, Custom header, eg: `{['Content-Type'] = 'text/plain', ["Content-Length"] = 1000}`
-  
+- ####res:sendFile(filePath, headers)
+  - `filePath`: string, **required**, send file directly. eg: `res:sendFile("files/preview.pdf")`
+  - `headers`: table, Custom header, eg: `{['Content-Type'] = 'text/plain', ["Content-Length"] = 1000}`
+
   eg:
   ```lua
   server:get("/files/:file", function(req,res)
   	res:sendFile("/public/files/".. req.params.file)
   end)
   ```
-- ###`:json()`
+- ####res:json(obj, code, headers)
   Send a JSON response. When an Table is given mooncake will respond with the JSON representation:
   
-  **`ServerResponse:json(obj, code, headers)`**
-  
-  - obj: table, **required**, data for render. eg: `{["status"]="OK"}`
-  - code: number, status code, eg: 200
-  - headers: table, Custom header, eg: `{['Content-Type'] = 'text/plain', ["Content-Length"] = 1000}`
+  - `obj`: table, **required**, data for render. eg: `{["status"]="OK"}`
+  - `code`: number, status code, eg: 200
+  - `headers`: table, Custom header, eg: `{['Content-Type'] = 'text/plain', ["Content-Length"] = 1000}`
 
   eg: 
   ```lua
@@ -321,16 +309,13 @@ end)
       res:json(posts, 200)
   end)
   ```
-- ###`:flash()`
+- ####res:flash(type, flash)
   `flash` method like in rails.
-  
-  **`ServerResponse:flash(type, flash)`**
 
-  - type: string, required, flash type: eg: "success"
-  - flash: string, required, flash content: eg: "You've successfully login, welcome back."
+  - `type`: string, required, flash type: eg: "success"
+  - `flash`: string, required, flash content: eg: "You've successfully login, welcome back."
   
-- ###`:locals()`
-  **`ServerResponse:locals(data)`**
+- ####res:locals(data)
   
   Store data as local data for render.
   eg:
