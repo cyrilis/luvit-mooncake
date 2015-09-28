@@ -55,7 +55,7 @@ function MoonCake:start (port, host)
             key = fs:readFileSync(path.join(self.keyPath, "key.pem")),
             cert = fs:readFileSync(path.join(self.keyPath, "cert.pem"))
         }
-        http.createServer(keyConfig, fn):listen(port, host)
+        https.createServer(keyConfig, fn):listen(port, host)
     else
         http.createServer(fn):listen(port, host)
     end
