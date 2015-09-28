@@ -7,6 +7,11 @@ Mooncake is a web framework powered by [luvit](https://luvit.io/). inspired by [
 
 ## Install
 
+Install with [lit](https://luvit.io/lit.html)
+```bash
+lit install cyrilis/mooncake
+```
+or with npm
 ```bash
 npm install mooncake
 ```
