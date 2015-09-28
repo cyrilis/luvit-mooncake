@@ -30,7 +30,7 @@ server:start(8080)
 ```
 
 ###Server
-- ### create server
+- #### create server
   - create a http server:
   ```
   Mooncake = require("mooncake")
@@ -46,7 +46,7 @@ server:start(8080)
   -- will read ssl key and cert file at "/path/to/key/key.pem" and "path/to/key/cert.pem"
   ```
   
-- ###server:use(func)
+- ####server:use(func)
   Use the given middleware function,
   eg:
   ```
@@ -55,7 +55,7 @@ server:start(8080)
   end)
   ```
 
-- ###server:static()
+- ####server:static()
   **`server:static(fileDir, options)`**
   - fileDir: string, directory path, **required**, eg: "public/files"
   - options: 
@@ -69,7 +69,7 @@ server:start(8080)
       maxAge = 31536000 -- one year
   })
   ```
-- ###server:start(port, ip)
+- ####server:start(port, ip)
   - port: number, optional, default to 8080
   - ip: string, optional, default to "127.0.0.1"
   
@@ -137,7 +137,7 @@ end)
 ```
 
 ###Request
-- ### req.params
+- #### req.params
   This property is an array containing properties mapped to the named route “parameters”. For example if you have the route /user/:name, then the “name” property is available to you as req.params.name. This object defaults to {}.
   
   eg:
@@ -147,7 +147,7 @@ end)
       p(req.params.name) -- output user name `cyrilis`
   end)
   ```
-- ### req.query
+- #### req.query
   This property is an object containing the parsed query-string, defaulting to {}.
   ```lua
   -- GET /search?q=tobi+ferret
@@ -165,7 +165,7 @@ end)
   -- => "converse"
   
   ```
-- ### req.body
+- #### req.body
   This property is an object containing the parsed request body. This property defaults to {}.
   ```lua
   -- POST user[name]=tobi&user[email]=tobi@learnboost.com
@@ -191,18 +191,18 @@ end)
     end
   end)
   ```
-- ### req.method
+- #### req.method
   return request method, eg: `"GET"`
-- ### req.cookie
+- #### req.cookie
   This object return parsed cookies sent by the user-agent. If no cookies are sent, it defaults to {}.
   ```lua
   -- Cookie: name=tj
   req.cookies.name
   -- => "tj"
   ```
-- ### req.headers
+- #### req.headers
   return headers of request.
-- ### req.url
+- #### req.url
   return the url of request.
 
 ###Response
