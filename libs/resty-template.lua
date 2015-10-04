@@ -210,7 +210,10 @@ local ___,blocks,layout={},blocks or {}
                 local f = sub(view, p, e - 1)
                 local x = (find(f, ",", 2, true))
                 if x then
-                    d = concat{"___[#___+1]=include([=[", sub(f, 1, x - 1), "]=],", sub(f, x + 1), "'",key,"'", ")\n"}
+                    f = f:gsub(" ", function()return "" end)
+                    local x = (find(f, ",", 2, true))
+                    local fpt = lpath.resolve(baseDir,f:sub(0,f:find(',',2, true)-1))
+                    d = concat{"___[#___+1]=include([=[", fpt, "]=],", sub(f, x + 1), ",'",key,"'", ")\n"}
                 else
                     d = concat{"___[#___+1]=include([=[", lpath.resolve(baseDir,f), "]=], nil, '", key, "')\n" }
                 end
