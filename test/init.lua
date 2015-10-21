@@ -43,6 +43,10 @@ server:post("/posts/new", function(q,s)
   end
 end)
 
+server:post("/", function(req, res)
+  res:send("wht")
+end)
+
 server:static("./libs/", {
   root = "/static/",
   maxAge = 31536000 -- one year
