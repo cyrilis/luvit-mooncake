@@ -94,7 +94,6 @@ function ServerResponse:sendFile(filePath, headers)
     ['ETag'] = etag,
     ['Last-Modified'] = lastModified
   }, headers or {})
-  p(headers, header)
   local statusCode = 200
   local content = fs.readFileSync(filePath)
   if self.req.headers["if-none-match"] == etag or self.req.headers["if-modified-since"] == lastModified then
