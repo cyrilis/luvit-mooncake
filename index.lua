@@ -218,13 +218,19 @@ function MoonCake:static (fileDir, options)
     options = options or {}
     options.root = options.root or "/"
     print("Serving Directory:" .. fileDir)
+    local headers = {}
     local maxAge = options.maxAge or 15552000 -- half a year
+    headers["Cache-Control"] = "public, max-age=" .. tostring(maxAge)
     local routePath = path.join(options.root, ":file")
     local notFoundFunc = self.notFoundFunc
     return self:get(routePath, function(req, res)
         local trimdPath = req.params.file:match("([^?]*)(?*)(.*)")
         local filePath = path.resolve(fileDir, trimdPath)
-        res:sendFile(filePath)
+        if fs.existsSync(filePath) then
+            res:sendFile(filePath, headers)
+        else
+            notFoundFunc(req, res)
+        end
     end)
 end
 

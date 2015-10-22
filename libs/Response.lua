@@ -79,7 +79,6 @@ end
 
 function ServerResponse:sendFile(filePath, headers)
   headers = headers or {}
-  local maxAge = headers.maxAge or 15552000 -- half a year
   local callerSource = debug.getinfo(2).source
   filePath = path.resolve(path.dirname(callerSource), filePath)
   local stat = fs.statSync(filePath)
@@ -93,9 +92,9 @@ function ServerResponse:sendFile(filePath, headers)
     ["Content-Type"] = fileType,
     ["Content-Length"] = stat.size,
     ['ETag'] = etag,
-    ['Last-Modified'] = lastModified,
-    ["Cache-Control"] = "public, max-age=" .. tostring(maxAge)
+    ['Last-Modified'] = lastModified
   }, headers or {})
+  p(headers, header)
   local statusCode = 200
   local content = fs.readFileSync(filePath)
   if self.req.headers["if-none-match"] == etag or self.req.headers["if-modified-since"] == lastModified then
