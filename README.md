@@ -1,6 +1,8 @@
 # Mooncake
 ----------------------------------------------
 
+[![Join the chat at https://gitter.im/cyrilis/luvit-mooncake](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/cyrilis/luvit-mooncake?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 **A web framework powered by luvit.**
 
 Mooncake is a web framework powered by [luvit](https://luvit.io/). inspired by [expressjs](http://expressjs.com/) of nodejs.
