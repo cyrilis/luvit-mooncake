@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Index of {{ currentPath }}</title>
+</head>
+<body>
+<h1>Index of {{ currentPath }}</h1>
+<table>
+    <thead>
+        <tr>
+            <td>Type</td>
+            <td>Name</td>
+            <td>Size</td>
+            <td>Description</td>
+            <td>Last Modified</td>
+        </tr>
+    </thead>
+    <tbody>
+        <tr><th colspan="5"><hr></th></tr>
+        <tr>
+            <td>
+                <img src="data:image/gif;base64,R0lGODlhFAAWAMIAAP///8z//5mZmWZmZjMzMwAAAAAAAAAAACH+TlRoaXMgYXJ0IGlzIGluIHRoZSBwdWJsaWMgZG9tYWluLiBLZXZpbiBIdWdoZXMsIGtldmluaEBlaXQuY29tLCBTZXB0ZW1iZXIgMTk5NQAh+QQBAAABACwAAAAAFAAWAAADSxi63P4jEPJqEDNTu6LO3PVpnDdOFnaCkHQGBTcqRRxuWG0v+5LrNUZQ8QPqeMakkaZsFihOpyDajMCoOoJAGNVWkt7QVfzokc+LBAA7"/>
+            </td>
+            <td>
+                <a href="{{ parentPath }}">__Parent Directory__</a>
+            </td>
+        </tr>
+        {% for idx, file in pairs(files) do %}
+            <tr>
+                <td>{% if file.type == "file" then %}
+                        <img src="data:image/gif;base64,R0lGODlhFAAWAMIAAP///8z//5mZmTMzMwAAAAAAAAAAAAAAACH+TlRoaXMgYXJ0IGlzIGluIHRoZSBwdWJsaWMgZG9tYWluLiBLZXZpbiBIdWdoZXMsIGtldmluaEBlaXQuY29tLCBTZXB0ZW1iZXIgMTk5NQAh+QQBAAABACwAAAAAFAAWAAADWDi6vPEwDECrnSO+aTvPEddVIriN1wVxROtSxBDPJwq7bo23luALhJqt8gtKbrsXBSgcEo2spBLAPDp7UKT02bxWRdrp94rtbpdZMrrr/A5+8LhPFpHajQkAOw=="/>
+                    {% else %}
+                        <img src="data:image/gif;base64,R0lGODlhFAAWAMIAAP/////Mmcz//5lmMzMzMwAAAAAAAAAAACH+TlRoaXMgYXJ0IGlzIGluIHRoZSBwdWJsaWMgZG9tYWluLiBLZXZpbiBIdWdoZXMsIGtldmluaEBlaXQuY29tLCBTZXB0ZW1iZXIgMTk5NQAh+QQBAAACACwAAAAAFAAWAAADVCi63P4wyklZufjOErrvRcR9ZKYpxUB6aokGQyzHKxyO9RoTV54PPJyPBewNSUXhcWc8soJOIjTaSVJhVphWxd3CeILUbDwmgMPmtHrNIyxM8Iw7AQA7"/>
+                    {% end %}
+                </td>
+                <td><a href="{{ file.path }}">{{ file.name }}</a></td>
+                <td>{{ file.size }}</td>
+                <td> - </td>
+                <td>{{ file.lastModified }}</td>
+            </tr>
+        {% end %}
+    </tbody>
+</table>
+</body>
+</html>

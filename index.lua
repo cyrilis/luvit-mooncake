@@ -25,10 +25,37 @@ local MoonCake = Emitter:extend()
 function MoonCake:initialize(options)
     options = options or {}
     self.options = options
-    self.notFoundFunc = function(req, res)
+    self.notFoundRequest = function(req, res)
         print(req.method, req.url)
         local content = "<h1 style='text-align: center; display: block; position: absolute; top: 32%; width: 400px; left: 50%; margin-left: -200px; font-weight: 200; font-family: 'Helvetica''>Page Not Found</h1>"
         res:send(content, 404)
+    end
+    self.notAuthorizedRequest = function(filePath, routePath, req, res)
+        local fileList = fs.readdirSync(filePath)
+        local parentPathList = helpers.split2(routePath, "/")
+        if routePath:sub(#routePath) == "/" then
+            table.remove(parentPathList)
+        end
+        table.remove(parentPathList)
+        local parentPath = table.concat(parentPathList, "/")
+        if parentPath == "" then parentPath = "/" end
+        local data = {parentPath = parentPath, currentPath = routePath, files = {}}
+        for idx, v in pairs(fileList) do
+            local fstat = fs.statSync(path.join(filePath, v))
+            local vfilePath = path.join(routePath, v)
+            if fstat.type ~= "file" then
+                vfilePath = vfilePath .. "/"
+            end
+            local lastModifiedTime = os.date("%c", fstat.mtime.sec)
+            data.files[idx] = {
+                name = v,
+                path = vfilePath,
+                lastModified = lastModifiedTime,
+                type = fstat.type,
+                size = fstat.size
+            }
+        end
+        res:render(path.resolve(module.dir, "./libs/directory.html"), data)
     end
     self.router = Router.new()
     self.isHttps = false
@@ -222,14 +249,18 @@ function MoonCake:static (fileDir, options)
     local maxAge = options.maxAge or 15552000 -- half a year
     headers["Cache-Control"] = "public, max-age=" .. tostring(maxAge)
     local routePath = path.join(options.root, ":file")
-    local notFoundFunc = self.notFoundFunc
     return self:get(routePath, function(req, res)
         local trimdPath = req.params.file:match("([^?]*)(?*)(.*)")
         local filePath = path.resolve(fileDir, trimdPath)
+        local trimedRoutePath = path.resolve(options.root, trimdPath)
         if fs.existsSync(filePath) then
-            res:sendFile(filePath, headers)
+            if fs.statSync(filePath).type == "file" then
+                res:sendFile(filePath, headers)
+            else
+                self.notAuthorizedRequest(filePath, trimedRoutePath, req, res)
+            end
         else
-            notFoundFunc(req, res)
+            self.notFoundRequest(req, res)
         end
     end)
 end
