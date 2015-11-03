@@ -43,7 +43,7 @@ function ServerResponse:send (data, code, header)
     ["Connection"] = "keep-alive",
     ["Content-Type"] = "text/html; charset=utf-8",
     ["X-Served-By"] = "MoonCake",
-    ["Content-Length"] = #data or 0
+    ["Content-Length"] = data and #data or 0
   })
   self:writeHead(self.statusCode, header)
   if data then
