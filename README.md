@@ -46,7 +46,7 @@ server:start(8080)
   - or create a https server:
   ```lua
   Mooncake = require("mooncake")
-  local server = Mooncake({
+  local server = Mooncake:new({
         isHttps = true
         keyPath = "/path/to/key"
   })
