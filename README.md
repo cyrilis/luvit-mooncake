@@ -24,7 +24,7 @@ npm install mooncake
 
 ```lua
 local MoonCake = require("mooncake")
-local server = MoonCake()
+local server = MoonCake:new()
 
 -- route your application
 server:get("/", function(req, res)
@@ -41,7 +41,7 @@ server:start(8080)
   - create a http server:
   ```lua
   Mooncake = require("mooncake")
-  local sever = Mooncake()
+  local sever = Mooncake:new()
   ```
   - or create a https server:
   ```lua
