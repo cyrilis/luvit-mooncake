@@ -1105,15 +1105,16 @@ end
 -- returned.
 
 function mimetypes.guess (filename, db)
-    db = db or defaultdb
-    if db.filenames[filename] then
-        return db.filenames[filename]
-    end
-    local ext = extension(filename)
-    if ext then
-        return db.extensions[ext]
-    end
-    return nil
+     local filename = filename:lower()
+     db = db or defaultdb
+     if db.filenames[filename] then
+          return db.filenames[filename]
+     end
+     local ext = extension(filename)
+     if ext then
+          return db.extensions[ext]
+     end
+     return nil
 end
 
 return mimetypes

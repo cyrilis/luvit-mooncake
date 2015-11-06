@@ -86,7 +86,7 @@ function ServerResponse:sendFile(filePath, headers)
   if not(stat) then
     return self:send("<p>Can't get "..filePath .. "</p>", 404)
   end
-  local fileType = mime.guess(filePath) or "text/plain: charset=utf8"
+  local fileType = mime.guess(filePath) or "application/octet-stream: charset=utf8"
   local etag = helpers.calcEtag(stat)
   local lastModified = os.date("%a, %d %b %Y %H:%M:%S GMT", stat.mtime.sec)
   local header = extend({
