@@ -8,6 +8,7 @@ local Router = require('./libs/router')
 local mime = require('./libs/mime')
 local helpers = require('./libs/helpers')
 local querystring = require('querystring')
+local JSON = require("json")
 local Cookie = require("./libs/cookie")
 require("./libs/ansicolors")
 
@@ -170,7 +171,14 @@ function MoonCake:genRoute ()
                     end
 --                    req.files[tempname] = { path = tempname }
                 else
-                    local bodyObj = querystring.parse(body)
+                    local bodyObj
+                    -- is this request JSON?
+                    if req.headers["Content-Type"] == 'application/json' then
+                      bodyObj = JSON.parse(body)
+                    else
+                      -- ok treat it as a form
+                      bodyObj = querystring.parse(body)
+                    end
                     req.body = bodyObj or {}
                     if req.body._method then
                         method = req.body._method:lower()
