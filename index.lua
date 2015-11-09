@@ -237,7 +237,7 @@ function MoonCake:route(routes)
 end
 
 function MoonCake:notFound(req, res)
-    local fn = self.notFoundFunc
+    local fn = self.notFoundRequest
     fn(req, res)
 end
 
