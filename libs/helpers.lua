@@ -65,7 +65,7 @@ local function log (req, res)
   end
   timer.setImmediate(function()
     uv.update_time()
-    timeCosted = getTime() - req.start_time
+    local timeCosted = getTime() - req.start_time
     d(currentDate:dim(), " - [", stCode, "]", (" " .. tostring(req.method) .. " "):yellow(), (tostring(timeCosted) .. "ms "):cyan(), req.url:blue(), (" UserAgent: "):magenta(), req.headers["user-agent"])
   end)
 end
