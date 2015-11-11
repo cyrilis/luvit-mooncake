@@ -63,8 +63,7 @@ server:start(8080)
   end)
   ```
 
-- ####server:static()
-  **`server:static(fileDir, options)`**
+- ####server:static(fileDir, options)
   - fileDir: string, directory path, **required**, eg: "public/files"
   - options: 
       - root: string, mount path, eg: `"/static"`
