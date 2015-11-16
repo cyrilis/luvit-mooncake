@@ -97,7 +97,15 @@ end
 
 function MoonCake:useit(req, res, callback)
 
-    local funcArray = helpers.copy(self._use or {})
+    local function reverseTable(t)
+        local reversedTable = {}
+        local itemCount = #t
+        for k, v in ipairs(t) do
+            reversedTable[itemCount + 1 - k] = v
+        end
+        return reversedTable
+    end
+    local funcArray = reverseTable(helpers.copy(self._use or {}))
     local function _useit(req, res)
         local next = table.remove(funcArray or {})
         if next then
