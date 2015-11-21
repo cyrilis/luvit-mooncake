@@ -11,6 +11,10 @@ return {
     tags = {"luvit", "web framework", "web", "application", "express", "mooncake", "framework"},
     license = "MIT",
     author = { name = "Cyril Hou" },
+    dependencies = {
+        "luvit/require",
+        "luvit/pretty-print",
+    },
     files = {
         "**.lua",
         "**.md",
