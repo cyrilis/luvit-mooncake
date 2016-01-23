@@ -272,7 +272,4 @@ function MoonCake:static (fileDir, options)
     end)
 end
 
-
-module.exports = MoonCake
-
 return MoonCake
