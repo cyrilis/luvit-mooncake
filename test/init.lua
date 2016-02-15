@@ -22,6 +22,13 @@ server:route({
   }
 })
 
+server:get("/setCookie", function(req, res)
+  res:setCookie("WTF", "Test", {
+    path = "/",
+    httpOnly = true
+  }):send("Set Cookie Test.")
+end)
+
 server:all("/hello", function(q, s)
   s:send("HELLO!")
 end)

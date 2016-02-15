@@ -90,8 +90,8 @@ function Cookie:sign (value, secret)
 	if type(value) ~= 'string' then error('cookie required') end
 	if type(secret) ~= 'string' then error('secret required') end
 
-  sha256 = openssl.digest.get("sha256")
-  d = openssl.digest.new(sha256)
+  local sha256 = openssl.digest.get("sha256")
+  local d = openssl.digest.new(sha256)
   d:update(secret)
   d:update(value)
 	local signed = value .. '.' .. d:final():gsub('%=+$', '')
