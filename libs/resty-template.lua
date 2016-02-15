@@ -3,7 +3,6 @@ local tostring = tostring
 local setfenv = setfenv
 local concat = table.concat
 local assert = assert
-local write = io.write
 local open = io.open
 local load = load
 local type = type
