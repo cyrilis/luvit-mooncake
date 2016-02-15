@@ -69,8 +69,13 @@ function ServerResponse:render(tpl, data)
     ServerResponse.flashData[sid] = nil
   end
   local renderData = extend(extend(localData, data or {}), flashData)
-  tpl = template.render(filePath, renderData, key)
-  self:send(tpl)
+  local status, result = pcall(function() template.render(filePath, renderData, key) end)
+  if status then
+    self:send(result)
+  else
+    p("[Error Rendering HTML] ",result)
+    self:fail("Internal Error")
+  end
 end
 
 function ServerResponse:status (statusCode)

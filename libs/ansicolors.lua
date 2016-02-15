@@ -126,8 +126,8 @@ end
 
 old_print = print
 _G.d = function(...)
-  allString = true
-  _temp = ...
+  local allString = true
+  local _temp = ...
   if _temp == nil then
     return old_print(...)
   end
@@ -142,6 +142,3 @@ _G.d = function(...)
     old_print(ansicolors(table.concat({...})))
   end
 end
-
-exports = Put
-return exports

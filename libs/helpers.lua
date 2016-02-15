@@ -252,7 +252,5 @@ return {
   	copy = copy,
   	calcEtag = calcEtag,
   	log = log,
-  	getTime = getTime,
-	extend = module.exports.extend,
-	extend_force = module.exports.extend_force
+  	getTime = getTime
 }

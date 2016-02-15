@@ -5,12 +5,21 @@
 --
 return {
     name = "cyrilis/mooncake",
-    version = "0.0.10",
+    version = "0.0.11",
     homepage = "https://github.com/cyrilis/luvit-mooncake",
     description = "Web framework for Luvit lang.",
     tags = {"luvit", "web framework", "web", "application", "express", "mooncake", "framework"},
     license = "MIT",
     author = { name = "Cyril Hou" },
+    dependencies = {
+        "luvit/require",
+        "luvit/pretty-print",
+        "luvit/http",
+        "luvit/https",
+        "luvit/path",
+        "luvit/fs",
+        "luvit/json"
+    },
     files = {
         "**.lua",
         "**.md",
