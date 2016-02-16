@@ -1,5 +1,6 @@
 local MoonCake = require("../")
 local server = MoonCake:new()
+local env = require("env")
 
 server:use(function(req, res, next)
     next()
@@ -7,6 +8,7 @@ end)
 
 server:match("get", "/", function(req, res)
   p(req.cookie)
+  env.set("viewEngine", "etlua")
   res:render("./views/index.html", {
     title= "Hello world from MoonCake!",
     message = "You are welcome!",
