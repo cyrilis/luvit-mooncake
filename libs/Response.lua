@@ -63,6 +63,14 @@ function ServerResponse:setCookie(name, value, options)
   return self
 end
 
+function ServerResponse:deleteCookie(name)
+  local options = {
+    expires = 0,
+    path = "/"
+  }
+  self:setCookie(name, "" , options)
+end
+
 function ServerResponse:render(tpl, data)
   local callerSource = debug.getinfo(2).source
   local filePath = path.resolve(path.dirname(callerSource), tpl)
