@@ -30,6 +30,10 @@ server:get("/setCookie", function(req, res)
   }):send("Set Cookie Test.")
 end)
 
+server:get("/removeCookie", function(req, res)
+  res:removeCookie("WTF"):send("RemoveCookie")
+end)
+
 server:all("/hello", function(q, s)
   s:send("HELLO!")
 end)

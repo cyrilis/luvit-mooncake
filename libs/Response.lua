@@ -69,7 +69,10 @@ function ServerResponse:deleteCookie(name)
     path = "/"
   }
   self:setCookie(name, "" , options)
+  return self
 end
+
+ServerResponse.removeCookie = ServerResponse.deleteCookie
 
 function ServerResponse:render(tpl, data)
   local callerSource = debug.getinfo(2).source
