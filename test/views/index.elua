@@ -1,0 +1,14 @@
+<%- include("../header.html") %>
+<h1><%= message %></h1>
+<ul>
+    <% for _, name in ipairs(names) do %>
+    <li><%= name %></li>
+    <% end %>
+</ul>
+
+<form action="/" method="post"  enctype='multipart/form-data'>
+    <input type="file" name="file1"/>
+    <input type="text" name="text1"/>
+    <button type="submit">提交</button>
+</form>
+<%- include("../footer.html") %>

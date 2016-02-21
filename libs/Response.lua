@@ -93,28 +93,34 @@ function ServerResponse:render(tpl, data)
     ServerResponse.flashData[sid] = nil
   end
   local renderData = extend(extend(localData, data or {}), flashData)
-  if viewEngine == "etlua" then
-    local templateString = fs.readSync(filePath)
+  if viewEngine == "etlua" or path.extname(filePath) == ".elua" then
+    local templateString = fs.readFileSync(filePath)
+    local include = function(fpath, data)
+      local fpath = path.resolve(filePath, fpath)
+      local tplString = fs.readFileSync(fpath)
+      if not tplString then
+        p("[Error]: File " .. fpath .. " Not Found.")
+        return ""
+      end
+      local renderData = extend(extend(localData or {}, {currentPath = fpath, include = include }),data or {})
+      local tplResult, err = etlua.render(tplString, renderData)
+      if tplResult then
+        return tplResult
+      else
+        p("[Error Rendering HTML] ", err)
+        return "<h1>Internal Error</h1> <p style='color: red'>Error while render template :(</p>"
+      end
+    end
     renderData = extend(localData, {
       currentPath = filePath,
-      include = function(filePath, data)
-        local filePath = path.resolve(currentPath, filePath)
-        local tplString = fs.readSync(filePath)
-        local tplResult, err = etlua.render(tplString, data)
-        if tplResult then
-          return tplResult
-        else
-          p("[Error Rendering HTML] ", err)
-          return "<h1>Internal Error</h1> <p style='color: red'>Error while render template :(</p>"
-        end
-      end
+      include = include
     })
     local result, error = etlua.render(templateString, renderData)
     if not result then
       p("[Error Rendering HTML] ", error)
       self:fail("Internal Error")
     else
-      self.send(result)
+      self:send(result)
     end
   else
     local status, result = pcall(function() return template.render(filePath, renderData, key) end)
