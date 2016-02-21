@@ -115,6 +115,9 @@ function ServerResponse:render(tpl, data)
       currentPath = filePath,
       include = include
     })
+    if not templateString then
+      templateString = tpl
+    end
     local result, error = etlua.render(templateString, renderData)
     if not result then
       p("[Error Rendering HTML] ", error)
