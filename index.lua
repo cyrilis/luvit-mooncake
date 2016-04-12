@@ -141,7 +141,8 @@ function MoonCake:genRoute ()
             end)
             req:on("end", function()
 
-                if string.find(req.headers['content-type'], "multipart/form-data", 1, true) then
+                local contentType = req.headers['Content-Type']
+                if contentType and string.find(contentType, "multipart/form-data", 1, true) then
                     local boundary = string.match(fileData, "^([^\r?\n?]+)\n?\r?")
                     local fileArray = helpers.split2(fileData,boundary)
                     table.remove(fileArray)
