@@ -173,10 +173,10 @@ function MoonCake:genRoute ()
                 else
                     local bodyObj
 
-                    if req.headers["Content-Type"] == 'application/json' then
+                    if req.headers["Content-Type"]:sub(1,16) == 'application/json' then
                         -- is this request JSON?
                       bodyObj = JSON.parse(body)
-                    elseif req.headers["Content-Type"] == "application/x-www-form-urlencoded" then
+                    elseif req.headers["Content-Type"]:sub(1, 33) == "application/x-www-form-urlencoded" then
                         -- normal form
                         bodyObj = querystring.parse(body)
                     else
