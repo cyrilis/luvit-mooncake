@@ -42,7 +42,7 @@ end
 
 local function resolve(path, node, params)
   local _, _, current_token, newPath = path:find("/([^/?]+)([^?]*)(?*)")
-  if not current_token then return node["LEAF"], params end
+  if not current_token and node["LEAF"] then return node["LEAF"], params end
 
   for child_token, child_node in pairs(node) do
     if child_token == current_token then
@@ -62,6 +62,12 @@ local function resolve(path, node, params)
           return child_node["LEAF"], params
         end
         params[param_name] = param_value -- reset the params table.
+      else
+        if child_token:sub(1, 2) == "*" then
+          local splat = current_token or path
+          params.splat = splat
+          return node[child_token]["LEAF"], params
+        end
       end
     end
   end

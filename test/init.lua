@@ -43,8 +43,12 @@ server:get("/removeCookie", function(req, res)
   res:removeCookie("WTF"):send("RemoveCookie")
 end)
 
-server:all("/hello", function(q, s)
+server:all("/hello.test", function(q, s)
   s:send("HELLO!")
+end)
+
+server:all("/hello.hello/*", function(q, s)
+  s:send("Splat!")
 end)
 
 server:get("/WTF", function(q, s)
