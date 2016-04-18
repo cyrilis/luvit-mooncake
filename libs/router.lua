@@ -60,7 +60,7 @@ local function resolve(path, node, params)
     if f then
       return f, bindings end
     if child_node["LEAF"] then
-      arams[param_name] = path:match("/(.*)")
+      params[param_name] = path:match("/(.*)")
       return child_node["LEAF"], params
     end
     params[param_name] = param_value -- reset the params table.
