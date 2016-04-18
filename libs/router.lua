@@ -47,28 +47,27 @@ local function resolve(path, node, params)
   for child_token, child_node in pairs(node) do
     if child_token == current_token then
       local f, bindings = resolve(newPath, child_node, params)
-      if f then return f, bindings end
-    else
-      if child_token:byte(1) == COLON_BYTE then -- token begins with ':'
-        local param_name = child_token:sub(2)
-        local param_value = params[param_name]
-        params[param_name] = param_value or current_token -- store the value in params, resolve tail path
-
-        local f, bindings = resolve(newPath, child_node, params)
-        if f then return f, bindings end
-
-        if child_node["LEAF"] then
-          params[param_name] = path:match("/(.*)")
-          return child_node["LEAF"], params
-        end
-        params[param_name] = param_value -- reset the params table.
-      else
-        if child_token:sub(1, 2) == "*" then
-          local splat = current_token or path
-          params.splat = splat
-          return node[child_token]["LEAF"], params
-        end
-      end
+      if f then
+        return f, bindings end
+    end
+  end
+  for child_token, child_node in pairs(node) do
+    if child_token:byte(1) == COLON_BYTE then -- token begins with ':'
+    local param_name = child_token:sub(2)
+    local param_value = params[param_name]
+    params[param_name] = param_value or current_token -- store the value in params, resolve tail path
+    local f, bindings = resolve(newPath, child_node, params)
+    if f then
+      return f, bindings end
+    if child_node["LEAF"] then
+      arams[param_name] = path:match("/(.*)")
+      return child_node["LEAF"], params
+    end
+    params[param_name] = param_value -- reset the params table.
+    elseif child_token:sub(1, 2) == "*" then
+      local splat = current_token or path
+      params.splat = splat
+      return node[child_token]["LEAF"], params
     end
   end
   return false
