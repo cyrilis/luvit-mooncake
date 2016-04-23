@@ -133,7 +133,7 @@ function MoonCake:genRoute ()
             local body = ""
             local fileData = ""
             req:on("data", function(chunk)
-                if rq.headers['Content-Type'] then
+                if req.headers['Content-Type'] then
                     if string.find(req.headers['Content-Type'], "multipart/form-data", 1, true) then
                         fileData = fileData..chunk
                     else
