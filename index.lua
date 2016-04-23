@@ -133,10 +133,22 @@ function MoonCake:genRoute ()
             local body = ""
             local fileData = ""
             req:on("data", function(chunk)
-                if string.find(req.headers['content-type'], "multipart/form-data", 1, true) then
-                    fileData = fileData..chunk
+                if rq.headers['Content-Type'] then
+                    if string.find(req.headers['Content-Type'], "multipart/form-data", 1, true) then
+                        fileData = fileData..chunk
+                    else
+                        body = body..chunk
+                    end
                 else
                     body = body..chunk
+                    if #body > 0 then
+                        res:status(400):json({
+                            status = "failed",
+                            success = false,
+                            code = 400,
+                            message = "Request is not valid, 'Content-Type' should be specified in header if request body exist."
+                        })
+                    end
                 end
             end)
             req:on("end", function()
@@ -173,15 +185,26 @@ function MoonCake:genRoute ()
                 else
                     local bodyObj
 
-                    if req.headers["Content-Type"]:sub(1,16) == 'application/json' then
-                        -- is this request JSON?
-                      bodyObj = JSON.parse(body)
-                    elseif req.headers["Content-Type"]:sub(1, 33) == "application/x-www-form-urlencoded" then
-                        -- normal form
-                        bodyObj = querystring.parse(body)
+                    if contentType then
+                        if req.headers["Content-Type"]:sub(1,16) == 'application/json' then
+                            -- is this request JSON?
+                          bodyObj = JSON.parse(body)
+                        elseif req.headers["Content-Type"]:sub(1, 33) == "application/x-www-form-urlencoded" then
+                            -- normal form
+                            bodyObj = querystring.parse(body)
+                        else
+                            -- content-type: text/xml
+                            bodyObj = body
+                        end
                     else
-                        -- content-type: text/xml
-                        bodyObj = body
+                        if #body > 0 then
+                            res:status(400):json({
+                                status = "failed",
+                                success = false,
+                                code = 400,
+                                message = "Request is not valid, 'Content-Type' should be specified in header if request body exist."
+                            })
+                        end
                     end
                     req.body = bodyObj or {}
                     if req.body._method then
