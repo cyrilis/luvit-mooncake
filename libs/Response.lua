@@ -77,6 +77,13 @@ ServerResponse.removeCookie = ServerResponse.deleteCookie
 
 function ServerResponse:render(tpl, data)
   local callerSource = debug.getinfo(2).source
+
+  if callerSource:sub(1,1) == "@" then
+    callerSource =  callerSource:sub(2)
+  elseif callerSource:sub(1, 7) == "bundle:" then
+    callerSource = callerSource
+  end
+
   local filePath = path.resolve(path.dirname(callerSource), tpl)
   local viewEngine = env.get("viewEngine")
   local renderer =  viewEngine == "etlua" and etlua or template
