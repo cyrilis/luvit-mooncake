@@ -151,6 +151,13 @@ end
 function ServerResponse:sendFile(filePath, headers)
   headers = headers or {}
   local callerSource = debug.getinfo(2).source
+
+  if callerSource:sub(1,1) == "@" then
+    callerSource =  callerSource:sub(2)
+  elseif callerSource:sub(1, 7) == "bundle:" then
+    callerSource = callerSource
+  end
+
   filePath = path.resolve(path.dirname(callerSource), filePath)
   local stat = fs.statSync(filePath)
   if not(stat) then

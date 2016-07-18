@@ -40,7 +40,7 @@ local keys = {
   italic     = 3,
   underline  = 4,
   blink      = 5,
-  reverse    = 7,
+  invert     = 7,
   hidden     = 8,
 
   -- foreground colors
