@@ -16,6 +16,8 @@ d((" Hello "):bluebg(), (" World "):redbg(), (" from MoonCake "):yellowbg(), (" 
 
 local Emitter = require("core").Emitter
 
+local _routes = {}
+
 local getQueryFromUrl = function(url)
   local params = string.match(url, "?(.*)") or ""
   return querystring.parse(params)
@@ -26,11 +28,6 @@ local MoonCake = Emitter:extend()
 function MoonCake:initialize(options)
     options = options or {}
     self.options = options
-    self.notFoundRequest = function(req, res)
-        print(req.method, req.url)
-        local content = "<h1 style='text-align: center; display: block; position: absolute; top: 32%; width: 400px; left: 50%; margin-left: -200px; font-weight: 200; font-family: 'Helvetica''>Page Not Found</h1>"
-        res:send(content, 404)
-    end
     self.notAuthorizedRequest = function(filePath, routePath, req, res)
         local fileList = fs.readdirSync(filePath)
         local parentPathList = helpers.split2(routePath, "/")
@@ -58,7 +55,6 @@ function MoonCake:initialize(options)
         end
         res:render(path.resolve(module.dir, "./libs/directory.html"), data)
     end
-    self.router = Router.new()
     self.isHttps = false
     if self.options.isHttps == true then
         self.isHttps = true
@@ -76,204 +72,237 @@ function MoonCake:start (port, host)
     if port == nil then
         port = 8080
     end
-    self:genRoute()
-    local fn = self.fn
+    local fn = function(req, res)
+        self:handleRequest(req, res)
+    end
     if self.isHttps == true then
         local keyConfig = {
             key = fs:readFileSync(path.join(self.keyPath, "key.pem")),
             cert = fs:readFileSync(path.join(self.keyPath, "cert.pem"))
         }
-        https.createServer(keyConfig, fn):listen(port, host)
+        self.server = https.createServer(keyConfig, fn):listen(port, host)
     else
-        http.createServer(fn):listen(port, host)
+        --- Export server instance
+        self.server = http.createServer(fn):listen(port, host)
     end
     d(("Moon"):redbg(),("Cake"):yellowbg()," Server Listening at http://localhost:" .. tostring(port) .. "/")
 end
 
-function MoonCake:use(fn)
-    self._use = self._use or {}
-    table.insert(self._use, fn)
-end
-
-function MoonCake:useit(req, res, callback)
-    local funcArray = helpers.copy(self._use or {})
-    local function _useit(req, res)
-        local next = table.remove(funcArray or {}, 1)
-        if next then
-            next(req, res, function()
-                _useit(req, res)
-            end)
-        else
-            callback(req, res)
-        end
+function MoonCake:handleRequest(req, res)
+    local url = req.url
+    local method = string.lower(req.method)
+    res.req = req
+    local querys = getQueryFromUrl(url)
+    req.query = querys
+    req.start_time = helpers.getTime()
+    res:on("finish", function()
+        helpers.log(req, res)
+    end)
+    if req.headers.cookie then
+        local cookie = Cookie:parse(req.headers.cookie)
+        req.cookie = cookie or {}
+    else
+        req.cookie = {}
     end
-    _useit(req, res)
-end
-
-function MoonCake:genRoute ()
-    local that = self
-    self.fn = function(req, res)
-        local url = req.url
-        local method = string.lower(req.method)
-        res.req = req
-        local params = {req, res }
-        local querys = getQueryFromUrl(url)
-        req.query = querys
-        req.start_time = helpers.getTime()
-        res:on("finish", function()
-            helpers.log(req, res)
-        end)
-        if req.headers.cookie then
-            local cookie = Cookie:parse(req.headers.cookie)
-            req.cookie = cookie or {}
-        else
-            req.cookie = {}
-        end
-        if method ~= "get" then
-            local body = ""
-            local fileData = ""
-            req:on("data", function(chunk)
-                if req.headers['Content-Type'] then
-                    if string.find(req.headers['Content-Type'], "multipart/form-data", 1, true) then
-                        fileData = fileData..chunk
-                    else
-                        body = body..chunk
-                    end
+    if method ~= "get" then
+        local body = ""
+        local fileData = ""
+        req:on("data", function(chunk)
+            if req.headers['Content-Type'] then
+                if string.find(req.headers['Content-Type'], "multipart/form-data", 1, true) then
+                    fileData = fileData..chunk
                 else
                     body = body..chunk
+                end
+            else
+                body = body..chunk
+                if #body > 0 then
+                    res:status(400):json({
+                        status = "failed",
+                        success = false,
+                        code = 400,
+                        message = "Request is not valid, 'Content-Type' should be specified in header if request body exist."
+                    })
+                end
+            end
+        end)
+        req:on("end", function()
+
+            local contentType = req.headers['Content-Type']
+            if contentType and string.find(contentType, "multipart/form-data", 1, true) then
+                local boundary = string.match(fileData, "^([^\r?\n?]+)\n?\r?")
+                local fileArray = helpers.split2(fileData,boundary)
+                table.remove(fileArray)
+                table.remove(fileArray, 1)
+                req.files = {}
+                req.body = {}
+                for _, fileString in pairs(fileArray) do
+                    local header, headers = string.match(fileString, "^\r?\n(.-\r?\n\r?\n)"), {}
+                    local content = ""
+                    string.gsub(fileString, "^\r?\n(.-\r?\n\r?\n)(.*)", function(_,b)
+                        if b:sub(#b-1):find("\r?\n") then
+                            local _, n = b:sub(#b-1):find("\r?\n")
+                            content = b:sub(0,#b-n)
+                        end
+                    end)
+                    string.gsub(header, '%s?([^%:?%=?]+)%:?%s?%=?%"?([^%"?%;?%c?]+)%"?%;?%c?', function(k,v)
+                        headers[k] = v
+                    end)
+                    if headers["filename"] then
+                        local tempname = os.tmpname()
+                        fs.writeFileSync(tempname, content)
+                        req.files[headers["name"]] = {path = tempname, name = headers["filename"], ["Content-Type"] = headers["Content-Type"] }
+                    else
+                        req.body[headers["name"]] = content
+                    end
+                end
+--                    req.files[tempname] = { path = tempname }
+            else
+                local bodyObj
+
+                if contentType then
+                    if req.headers["Content-Type"]:sub(1,16) == 'application/json' then
+                        -- is this request JSON?
+                      bodyObj = JSON.parse(body)
+                    elseif req.headers["Content-Type"]:sub(1, 33) == "application/x-www-form-urlencoded" then
+                        -- normal form
+                        bodyObj = querystring.parse(body)
+                    else
+                        -- content-type: text/xml
+                        bodyObj = body
+                    end
+                else
                     if #body > 0 then
                         res:status(400):json({
                             status = "failed",
                             success = false,
                             code = 400,
-                            message = "Request is not valid, 'Content-Type' should be specified in header if request body exist."
+                            message = "Bad Request, 'Content-Type' in request headers should be specified if request body exist."
                         })
                     end
                 end
-            end)
-            req:on("end", function()
-
-                local contentType = req.headers['Content-Type']
-                if contentType and string.find(contentType, "multipart/form-data", 1, true) then
-                    local boundary = string.match(fileData, "^([^\r?\n?]+)\n?\r?")
-                    local fileArray = helpers.split2(fileData,boundary)
-                    table.remove(fileArray)
-                    table.remove(fileArray, 1)
-                    req.files = {}
-                    req.body = {}
-                    for _, fileString in pairs(fileArray) do
-                        local header, headers = string.match(fileString, "^\r?\n(.-\r?\n\r?\n)"), {}
-                        local content = ""
-                        string.gsub(fileString, "^\r?\n(.-\r?\n\r?\n)(.*)", function(_,b)
-                            if b:sub(#b-1):find("\r?\n") then
-                                local _, n = b:sub(#b-1):find("\r?\n")
-                                content = b:sub(0,#b-n)
-                            end
-                        end)
-                        string.gsub(header, '%s?([^%:?%=?]+)%:?%s?%=?%"?([^%"?%;?%c?]+)%"?%;?%c?', function(k,v)
-                            headers[k] = v
-                        end)
-                        if headers["filename"] then
-                            local tempname = os.tmpname()
-                            fs.writeFileSync(tempname, content)
-                            req.files[headers["name"]] = {path = tempname, name = headers["filename"], ["Content-Type"] = headers["Content-Type"] }
-                        else
-                            req.body[headers["name"]] = content
-                        end
-                    end
---                    req.files[tempname] = { path = tempname }
-                else
-                    local bodyObj
-
-                    if contentType then
-                        if req.headers["Content-Type"]:sub(1,16) == 'application/json' then
-                            -- is this request JSON?
-                          bodyObj = JSON.parse(body)
-                        elseif req.headers["Content-Type"]:sub(1, 33) == "application/x-www-form-urlencoded" then
-                            -- normal form
-                            bodyObj = querystring.parse(body)
-                        else
-                            -- content-type: text/xml
-                            bodyObj = body
-                        end
-                    else
-                        if #body > 0 then
-                            res:status(400):json({
-                                status = "failed",
-                                success = false,
-                                code = 400,
-                                message = "Request is not valid, 'Content-Type' should be specified in header if request body exist."
-                            })
-                        end
-                    end
-                    req.body = bodyObj or {}
-                    if req.body._method then
-                        method = req.body._method:lower()
-                    end
+                req.body = bodyObj or {}
+                if req.body._method then
+                    method = req.body._method:lower()
                 end
+            end
 
-                req.body = req.body or {}
-                req.files = req.files or {}
+            req.body = req.body or {}
+            req.files = req.files or {}
 
-                that:useit(req, res, function(req, res)
-                    local result, err = that.router:execute(method, url, params)
-                    if not result then
-                        print(err)
-                        return that:notFound(req, res)
-                    end
-                end)
-            end)
-        else
-            req.body = {}
-            that:useit(req, res, function(req, res)
-                local result, err = that.router:execute(method, url, params)
-                if not result then
-                    print(err)
-                    that:notFound(req, res)
-                end
-            end)
-        end
+            self:execute(req, res)
+        end)
+    else
+        req.body = {}
+        self:execute(req, res)
     end
 end
 
-function MoonCake:match (method, path, fn)
-    local routeFunc = function(params)
-        local req, res = params[1], params[2]
-        req.params = params
-        fn(req, res, params)
+function MoonCake:execute(req, res)
+    function notFound()
+        p("Not Found!")
+        res:status(404):send("not found")
     end
-    self.router:match(method, path, routeFunc)
+
+    function serverError ()
+        p("Server Error!")
+        res:status(500):send("internal error")
+    end
+
+    function go (i)
+        local success, err = pcall(function ()
+            i = i or 1
+            local next = i < #_routes and function () return go(i + 1) end or notFound
+            return _routes[i](req, res, next)
+        end)
+        if not success then
+            p(err)
+            serverError(req, res)
+        end
+    end
+    go(1);
+end
+
+function MoonCake:use(fn)
+    table.insert(_routes, fn)
+    return self
+end
+
+local quotepattern = '(['..("%^$().[]*+-?"):gsub("(.)", "%%%1")..'])'
+
+local function escape(str)
+    return str:gsub(quotepattern, "%%%1")
+end
+
+local function compileRoute(route)
+  local parts = {"^"}
+  local names = {}
+  for a, b, c, d in route:gmatch("([^:]*):([_%a][_%w]*)(:?)([^:]*)") do
+    if #a > 0 then
+      parts[#parts + 1] = escape(a)
+    end
+    if #c > 0 then
+      parts[#parts + 1] = "(.*)"
+    else
+      parts[#parts + 1] = "([^/]*)"
+    end
+    names[#names + 1] = b
+    if #d > 0 then
+      parts[#parts + 1] = escape(d)
+    end
+  end
+  if #parts == 1 then
+    return function (string)
+      if string == route then return {} end
+    end
+  end
+  parts[#parts + 1] = "$"
+  local pattern = table.concat(parts)
+  p(pattern)
+  return function (string)
+    local matches = {string:match(pattern)}
+    if #matches > 0 then
+      local results = {}
+      for i = 1, #matches do
+        results[i] = matches[i]
+        results[names[i]] = matches[i]
+      end
+      return results
+    end
+  end
+end
+
+function MoonCake:route(method, path, fn)
+    local _path = path and compileRoute(path)
+    self:use(function (req, res, next)
+        p(req.method, method)
+        if method:lower() ~= (req.method):lower() and method:lower() ~= "all" then return next() end
+        local params
+        if _path then
+            local pathname, query = req.url:match("^([^?]*)%??(.*)");
+            params = _path(pathname)
+            if not params then return next() end
+        end
+        req.params = params or {}
+        return fn(req, res, next)
+    end)
+    return self
 end
 
 function MoonCake:get(path, fn)
-    self:match("get", path, fn)
+    self:route("get", path, fn)
 end
 function MoonCake:post(path, fn)
-    self:match("post", path, fn)
+    self:route("post", path, fn)
 end
 function MoonCake:put(path, fn)
-    self:match("put", path, fn)
+    self:route("put", path, fn)
 end
 function MoonCake:delete(path, fn)
-    self:match("delete", path, fn)
+    self:route("delete", path, fn)
 end
 function MoonCake:all(path, fn)
-    for _, method in pairs({"get", "post", "put", "delete"}) do
-        self:match(method, path, fn)
-    end
-end
-
-function MoonCake:route(routes)
-    for method, route in pairs(routes) do
-        for path, fn in pairs(route) do
-            self:match(method, path, fn)
-        end
-    end
-end
-
-function MoonCake:notFound(req, res)
-    local fn = self.notFoundRequest
-    fn(req, res)
+    self:route("all", path, fn)
 end
 
 function MoonCake:static (fileDir, options)
@@ -284,7 +313,7 @@ function MoonCake:static (fileDir, options)
     local maxAge = options.maxAge or 15552000 -- half a year
     headers["Cache-Control"] = "public, max-age=" .. tostring(maxAge)
     local routePath = path.join(options.root, ":file")
-    return self:get(routePath, function(req, res)
+    return self:get(routePath, function(req, res, next)
         local trimdPath = req.params.file:match("([^?]*)(?*)(.*)")
         local filePath = path.resolve(fileDir, trimdPath)
         local trimedRoutePath = path.resolve(options.root, trimdPath)
@@ -295,7 +324,7 @@ function MoonCake:static (fileDir, options)
                 self.notAuthorizedRequest(filePath, trimedRoutePath, req, res)
             end
         else
-            self.notFoundRequest(req, res)
+            next()
         end
     end)
 end
