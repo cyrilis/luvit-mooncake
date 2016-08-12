@@ -25,7 +25,7 @@ server:get("/etlua", function(req, res)
 end)
 
 server:route("get", "/users/:id", function(q, s)
-      s:send("List User in Databases => " .. q.params.id)
+    s:send("List User in Databases => " .. q.params.id)
 end)
 
 server:get("/setCookie", function(req, res)

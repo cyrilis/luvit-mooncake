@@ -4,7 +4,6 @@ local https = require("https")
 local path = require("path")
 local fs = require('fs')
 local fse = require("./libs/fse")
-local Router = require('./libs/router')
 local mime = require('./libs/mime')
 local helpers = require('./libs/helpers')
 local querystring = require('querystring')
@@ -258,7 +257,6 @@ local function compileRoute(route)
   end
   parts[#parts + 1] = "$"
   local pattern = table.concat(parts)
-  p(pattern)
   return function (string)
     local matches = {string:match(pattern)}
     if #matches > 0 then
@@ -275,7 +273,6 @@ end
 function MoonCake:route(method, path, fn)
     local _path = path and compileRoute(path)
     self:use(function (req, res, next)
-        p(req.method, method)
         if method:lower() ~= (req.method):lower() and method:lower() ~= "all" then return next() end
         local params
         if _path then
