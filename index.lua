@@ -298,6 +298,9 @@ end
 function MoonCake:delete(path, fn)
     self:route("delete", path, fn)
 end
+function MoonCake:patch(path, fn)
+    self:route("patch", path, fn)
+end
 function MoonCake:all(path, fn)
     self:route("all", path, fn)
 end
