@@ -74,4 +74,13 @@ server:static("./libs/", {
   maxAge = 31536000 -- one year
 })
 
+server:get("/testError", function (req, res, next)
+    next("ERROR: SOMETHING HAPPEND.")
+    -- next()
+end)
+
+MoonCake.serverError = function (req, res, error)
+    res:status(500):json(error)
+end
+
 server:start(8081)

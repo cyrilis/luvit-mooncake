@@ -5,7 +5,7 @@
 --
 return {
     name = "cyrilis/mooncake",
-    version = "0.1.0",
+    version = "0.1.1",
     homepage = "https://github.com/cyrilis/luvit-mooncake",
     description = "Web framework for Luvit lang.",
     tags = {"luvit", "web framework", "web", "application", "express", "mooncake", "framework"},

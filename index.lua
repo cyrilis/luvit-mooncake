@@ -197,26 +197,48 @@ function MoonCake:handleRequest(req, res)
     end
 end
 
-function MoonCake:execute(req, res)
-    function notFound()
-        p("Not Found!")
+function MoonCake.notFound(req, res, err)
+    if(err) then
+        serverError(err)
+    else
+        p("404 - Not Found!")
         res:status(404):send("not found")
     end
+end
 
-    function serverError ()
-        p("Server Error!")
+function MoonCake.serverError (req, res, err)
+    p("MoonCake: Server Error", err)
+    if(error and DEBUG) then
+        res:status(500):json(error)
+    else
         res:status(500):send("internal error")
     end
+end
 
-    function go (i)
+function MoonCake:execute(req, res)
+    function go (i, error)
         local success, err = pcall(function ()
             i = i or 1
-            local next = i < #_routes and function () return go(i + 1) end or notFound
+
+            local next = function(error)
+                if(error)then
+                    MoonCake.serverError(req, res, error)
+                else
+                    MoonCake.notFound(req, res)
+                end
+            end
+
+            if i < #_routes then
+                next = function (error)
+                    return go(i + 1, error)
+                end
+            end
+
             return _routes[i](req, res, next)
         end)
         if not success then
             p(err)
-            serverError(req, res)
+            MoonCake.serverError(req, res, err)
         end
     end
     go(1);
@@ -225,6 +247,10 @@ end
 function MoonCake:use(fn)
     table.insert(_routes, fn)
     return self
+end
+
+function MoonCake:clear()
+    _routes = {}
 end
 
 local quotepattern = '(['..("%^$().[]*+-?"):gsub("(.)", "%%%1")..'])'
