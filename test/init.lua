@@ -74,6 +74,18 @@ server:static("./libs/", {
   maxAge = 31536000 -- one year
 })
 
+-- Test render to file : renderToFile
+server:get("/cache", function (req, res, next)
+    p("Cache test....")
+    res:renderToFile("./views/index.html", {
+      title= "Hello world from MoonCake!",
+      message = "You are welcome!",
+      names = {"Tom", "Jerry", "Wof"},
+      jquery  = '<script src="js/jquery.min.js"></script>'
+  }, "./cache.html");
+    res:sendFile("./cache.html")
+end)
+
 server:get("/testError", function (req, res, next)
     next("ERROR: SOMETHING HAPPEND.")
     -- next()

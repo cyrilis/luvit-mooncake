@@ -219,18 +219,15 @@ function MoonCake:execute(req, res)
     function go (i, error)
         local success, err = pcall(function ()
             i = i or 1
-
             local next = function(error)
                 if(error)then
                     MoonCake.serverError(req, res, error)
                 else
-                    MoonCake.notFound(req, res)
-                end
-            end
-
-            if i < #_routes then
-                next = function (error)
-                    return go(i + 1, error)
+                    if i < #_routes then
+                        return go(i + 1, error)
+                    else
+                        MoonCake.notFound(req, res)
+                    end
                 end
             end
 

@@ -143,6 +143,43 @@ function ServerResponse:render(tpl, data)
   end
 end
 
+function ServerResponse:renderToFile(tpl, data, file, continueOnError)
+    local callerSource = debug.getinfo(2).source
+
+    if callerSource:sub(1,1) == "@" then
+      callerSource =  callerSource:sub(2)
+    elseif callerSource:sub(1, 7) == "bundle:" then
+      callerSource = callerSource
+    end
+
+    local filePath = path.resolve(path.dirname(callerSource), tpl)
+    local viewEngine = env.get("viewEngine")
+    local renderer =  viewEngine == "etlua" and etlua or template
+    local key = "no-cache"
+    if env.get("PROD") == "TRUE" then
+      key = nil
+    end
+    local localData = self._local or {}
+
+    local flashData = { flash = nil}
+    if self.req.session and self.req.session.sid then
+      local sid = self.req.session.sid
+      flashData =  {flash = ServerResponse.flashData[sid] or {} }
+      ServerResponse.flashData[sid] = nil
+    end
+    local renderData = extend(extend(localData, data or {}), flashData)
+
+    local status, result = pcall(function() return template.render(filePath, renderData, key) end)
+    if status then
+      fs.writeFileSync(file, result)
+    else
+      p("[Error Rendering HTML] ",result)
+      if (continueOnError) then
+        fs.writeFileSync(file, result)
+      end
+    end
+end
+
 function ServerResponse:status (statusCode)
   self.statusCode = statusCode
   return self
@@ -210,10 +247,7 @@ function ServerResponse:locals(data)
 end
 
 function ServerResponse:fail(reason)
-  self:send(reason, 500, {
-    ['Content-Type'] = 'text/plain; charset=UTF-8',
-    ['Content-Length'] = #reason
-  })
+  self:status(500):send(reason)
 end
 
 function ServerResponse:not_modified(header)
