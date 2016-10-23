@@ -182,7 +182,7 @@ function MoonCake:handleRequest(req, res)
                 end
                 req.body = bodyObj or {}
                 if req.body._method then
-                    method = req.body._method:lower()
+                    req._method = req.body._method:lower()
                 end
             end
 
@@ -275,9 +275,24 @@ local function compileRoute(route)
   end
   if #parts == 1 then
     return function (string)
-      if string == route then return {} end
+      if string == route then
+           return {}
+       else
+          if route == string:gsub("%/$", "") then
+              return {}
+          end
+      end
     end
   end
+
+  if #parts > 1 and not(parts[#parts]:match("%*%)")) then
+      local lastComp = parts[#parts]
+      if lastComp:sub(#lastComp) == "/" then
+          lastComp = lastComp:sub(1, #lastComp - 1)
+      end
+      parts[#parts] = lastComp .. "%/?"
+  end
+
   parts[#parts + 1] = "$"
   local pattern = table.concat(parts)
   return function (string)
@@ -296,7 +311,12 @@ end
 function MoonCake:route(method, path, fn)
     local _path = path and compileRoute(path)
     self:use(function (req, res, next)
-        if method:lower() ~= (req.method):lower() and method:lower() ~= "all" then return next() end
+        if method:lower() ~= (req.method):lower() and method:lower() ~= "all" and method:lower() ~= (req._method or ""):lower() then
+            return next()
+        end
+        if req._method and method:lower() ~= (req._method or ""):lower() then
+            return next()
+        end
         local params
         if _path then
             local pathname, query = req.url:match("^([^?]*)%??(.*)");
