@@ -216,7 +216,7 @@ function MoonCake.serverError (req, res, err)
 end
 
 function MoonCake:execute(req, res)
-    function go (i, error)
+    function go (i, error, req, res)
         local success, err = pcall(function ()
             i = i or 1
             local next = function(error)
@@ -224,7 +224,7 @@ function MoonCake:execute(req, res)
                     MoonCake.serverError(req, res, error)
                 else
                     if i < #_routes then
-                        return go(i + 1, error)
+                        return go(i + 1, error, req, res)
                     else
                         MoonCake.notFound(req, res)
                     end
@@ -238,7 +238,7 @@ function MoonCake:execute(req, res)
             MoonCake.serverError(req, res, err)
         end
     end
-    go(1);
+    go(1, nil, req, res);
 end
 
 function MoonCake:use(fn)
@@ -335,8 +335,8 @@ function MoonCake:static (fileDir, options)
     local headers = {}
     local maxAge = options.maxAge or 15552000 -- half a year
     headers["Cache-Control"] = "public, max-age=" .. tostring(maxAge)
-    local routePath = path.join(options.root, ":file")
-    return self:get(routePath, function(req, res, next)
+    local routePath = path.join(options.root, ":file:")
+    self:get(routePath, function(req, res, next)
         local trimdPath = req.params.file:match("([^?]*)(?*)(.*)")
         local filePath = path.resolve(fileDir, trimdPath)
         local trimedRoutePath = path.resolve(options.root, trimdPath)
@@ -350,6 +350,7 @@ function MoonCake:static (fileDir, options)
             next()
         end
     end)
+    return self
 end
 
 return MoonCake
