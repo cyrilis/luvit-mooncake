@@ -280,6 +280,10 @@ local function compileRoute(route)
        else
           if route == string:gsub("%/$", "") then
               return {}
+          else
+              if route:gsub("%/$", "") == string then
+                  return {}
+              end
           end
       end
     end
