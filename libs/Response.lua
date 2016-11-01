@@ -32,26 +32,33 @@ end
 
 function ServerResponse:send (data, code, header)
   if self._headerSent then
-    p("------------------------------")
-    p("Error", "Header Has Been Sent.")
-    p("------------------------------")
-    return false
+    return true
   end
-  self._headerSent = true
-  code = code or self.statusCode or 200
-  self:status(code)
-  header = copy(copy(header, self.headers), {
-    ["Connection"] = "keep-alive",
-    ["Content-Type"] = "text/html; charset=utf-8",
-    ["X-Served-By"] = "MoonCake",
-    ["Content-Length"] = data and #data or 0
-  })
-  self:writeHead(self.statusCode, header)
+  self:sendHead(code, header, data)
   if data then
     self:write(data)
   end
   self:finish()
   collectgarbage()
+end
+
+function ServerResponse:sendHead(code, header, data)
+    if self._headerSent then
+      p("------------------------------")
+      p("Error", "Header Has Been Sent.")
+      p("------------------------------")
+      return true
+    end
+    self._headerSent = true
+    code = code or self.statusCode or 200
+    self:status(code)
+    header = copy(copy(header, self.headers), {
+      ["Connection"] = "keep-alive",
+      ["Content-Type"] = "text/html; charset=utf-8",
+      ["X-Served-By"] = "MoonCake",
+      ["Content-Length"] = data and #data or 0
+    })
+    self:writeHead(self.statusCode, header)
 end
 
 function ServerResponse:setCookie(name, value, options)
@@ -215,7 +222,11 @@ function ServerResponse:sendFile(filePath, headers)
     statusCode = 304
     content = nil
   end
-  self:send(content, statusCode, header)
+  if self._headerSent then
+    return true
+  end
+  self:sendHead(statusCode, header, nil)
+  fs.createReadStream(filePath):pipe(self)
 end
 
 function ServerResponse:redirect(url, code)
