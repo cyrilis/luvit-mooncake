@@ -1,30 +1,24 @@
-## Mooncake
+# Mooncake
 
 [![Join the chat at https://gitter.im/cyrilis/luvit-mooncake](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/cyrilis/luvit-mooncake?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 **A web framework powered by luvit.**
 
-Mooncake is a web framework powered by [luvit](https://luvit.io/). inspired by [expressjs](http://expressjs.com/) of nodejs.
+Mooncake is a web framework powered by [luvit](https://luvit.io/). inspired by [expressjs](http://expressjs.com/) for nodejs.
 
 ## Install
 
 Install with [lit](https://luvit.io/lit.html)
 
-``` bash
+```bash
 lit install cyrilis/mooncake
-```
-
-or with npm
-
-``` bash
-npm install mooncake
 ```
 
 ## Usage
 
 ### Getting start
 
-``` lua
+```lua
 local MoonCake = require("mooncake")
 local server = MoonCake:new()
 
@@ -43,14 +37,14 @@ server:start(8080)
 
   - create a http server:
 
-    ``` lua
+    ```lua
     Mooncake = require("mooncake")
     local sever = Mooncake:new()
     ```
 
   - or create a https server:
 
-    ``` lua
+    ```lua
     Mooncake = require("mooncake")
     local server = Mooncake:new({
         isHttps = true
@@ -65,8 +59,8 @@ server:start(8080)
 
   Example:
 
-  ``` lua
-  server:use(function(req, res,next)
+  ```lua
+  server:use(function(req, res, next)
       res:locals({first = true})
       next()
   end)
@@ -84,21 +78,21 @@ server:start(8080)
 
       eg:
 
-  ``` lua
+  ```lua
   server:static(path.resolve(module.dir, "../public/"), {
       root = "/static/",
       maxAge = 31536000 -- one year
   })
   ```
 
-- #### server:start(port, ip)
+- #### server:start(port [, address])
 
   - port: number, optional, default to 8080
-  - ip: string, optional, default to "127.0.0.1"
+  - address: string, optional, default to "127.0.0.1"
 
   Start your server:
 
-  ``` lua
+  ```lua
   server:start(8080)
   ```
 
@@ -110,24 +104,37 @@ server:start(8080)
 
 Example:
 
-``` lua
+```lua
 -- :all
-server:all("/hello", function(req, res)
+server:all("/hello", function(req, res, next)
     res:send("HELLO!")
 end)
 
 -- :get
-server:get("/admin", function(req, res)
-   ... -- login check func
+server:get("/admin/:page", function(req, res,next)
+    --- ...
+    -- login check func
+    if isLogin then
+      next()
+    else
+      res:status(403):redirect("/login")
+    end
+end)
+
+server:get("/admin/dashboard", function(req, res, next)
+    --- ...
+    res:render("../views/dashbaord", data)
 end)
 
 -- :post
 server:post("/posts", function(req, res)
+   p(req.body) -- print post data;
    ... -- create a new post
 end)
 
 -- :put
 server:put("/posts/:id", function(req, res)
+   p(req.params.id) -- print id params in request
    ... -- update post with id = `req.params.id`
 end)
 
@@ -137,27 +144,10 @@ server:delete("/posts/:id", function(req, res)
 end)
 ```
 
-Or you can create a route table then apply them once with method: `:route`
+Or you can use `server:route()` to match route if your use custom method:
 
-``` lua
-server:route({
-  ["get"] = {
-    ["/users/:id"] = function(q, s)
-      s:send("List User in Databases => " .. q.params.id)
-    end
-  }
-  ["custom_method"] = {
-   ["/test"] = function(req, res)
-       res:send("test ok!")
-    end
-  }
-})
-```
-
-You can use `server:match()` if your use custom method:
-
-``` lua
-server:match("delete", "/posts/:id", function(req, res)
+```lua
+server:route("custom-method", "/posts/:id", function(req, res)
     ... -- delete post with id = "req.params.id"
 end)
 ```
@@ -170,7 +160,7 @@ end)
 
   eg:
 
-  ``` lua
+  ```lua
   -- GET "/user/cyrilis"
   server:put("/user/:name", function(req, res)
       p(req.params.name) -- output user name `cyrilis`
@@ -181,7 +171,7 @@ end)
 
   This property is an object containing the parsed query-string, defaulting to {}.
 
-  ``` lua
+  ```lua
   -- GET /search?q=tobi+ferret
   req.query.q
   -- => "tobi ferret"
@@ -201,7 +191,7 @@ end)
 
   This property is an object containing the parsed request body. This property defaults to {}.
 
-  ``` lua
+  ```lua
   -- POST user[name]=tobi&user[email]=tobi@learnboost.com
   req.body.user.name
   -- => "tobi"
@@ -216,7 +206,7 @@ end)
 
   You can get post data via req.body, then save to db:
 
-  ``` lua
+  ```lua
   server:post("/posts/new", function(req,res)
     if req.body.title and req.body.content then
       print("new post")
@@ -235,10 +225,10 @@ end)
 
   This object return parsed cookies sent by the user-agent. If no cookies are sent, it defaults to {}.
 
-  ``` lua
-  -- Cookie: name=tj
+  ```lua
+  -- Cookie: name=cyrilis
   req.cookies.name
-  -- => "tj"
+  -- => "cyrilis"
   ```
 
 - #### req.headers
@@ -263,7 +253,7 @@ end)
 
   Example:
 
-  ``` lua
+  ```lua
   server:get("/abc", function(req, res)
       res:send("")
   end)
@@ -273,14 +263,14 @@ end)
 
   There are two render engines build in, default is [lua-resty-template](https://github.com/bungle/lua-resty-template/), and the other one is [etlua](https://github.com/leafo/etlua), if you prefer `etlua` as your default render engine, you can add below code in your project:
 
-  ``` lua
+  ```lua
   local env = require("env")
   env.set("viewEngine", "etlua")
   ```
 
   — Or just use .elua as template file extension name
 
-  ``` lua
+  ```lua
   res:render("./views/index.elua", {title = "Hello world!"})
   ```
 
@@ -291,7 +281,7 @@ end)
 
   Example of  [lua-resty-template ](https://github.com/bungle/lua-resty-template/):
 
-  ``` lua
+  ```lua
   server:get("/posts", function(q,s)
     -- get post list, render template.
     s:render("./view/post-list.html", {posts = DB.find("posts")})
@@ -300,7 +290,7 @@ end)
 
   `./view/post-list.html`
 
-  ``` html
+  ```html
   <ul>
   {% for _, post in ipairs(posts) do %}
       <li>{{post.title}}</li>
@@ -310,7 +300,7 @@ end)
 
   Example of  [etlua](https://github.com/leafo/etlua)
 
-  ``` lua
+  ```lua
   server:get("/posts", function(q,s)
     -- get post list, render template.
     s:render("./view/post-list.elua", {posts = DB.find("posts")})
@@ -319,7 +309,7 @@ end)
 
   `./view/post-list.elua`
 
-  ``` ejs
+  ```ejs
   <ul>
       <% for _, name in ipairs(names) do %>
       <li><%= name %></li>
@@ -329,7 +319,7 @@ end)
 
   #### Render Result:
 
-  ``` html
+  ```html
   <ul>
       <li>Post 1</li>
       <li>Post 2</li>
@@ -347,7 +337,7 @@ end)
 
   Example:
 
-  ``` lua
+  ```lua
   server:get("/post-not-exist", function(req, res)
     -- if user not login then
     res:redirect("/page-not-found", 302)
@@ -365,7 +355,7 @@ end)
 
   Example:
 
-  ``` lua
+  ```lua
   server:get("/page-not-exist", function(req, res)
     res:status(404):render("404.html")
   end)
@@ -378,7 +368,7 @@ end)
 
   Example:
 
-  ``` lua
+  ```lua
   server:get("/files/:file", function(req,res)
    res:sendFile("/public/files/".. req.params.file)
   end)
@@ -394,7 +384,7 @@ end)
 
   Example:
 
-  ``` lua
+  ```lua
   server:get("/api.json", function(req, res)
       posts = DB:find("*")
       res:json(posts, 200)
@@ -414,7 +404,7 @@ end)
 
   Example:
 
-  ``` lua
+  ```lua
   server:use(function(req, res, next)
    if req.query.page ~= 1 then
         res:locals({isFirstPage = false})
@@ -441,6 +431,3 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-
-
