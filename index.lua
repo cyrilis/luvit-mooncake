@@ -27,7 +27,7 @@ function MoonCake:initialize(options)
     options = options or {}
     self.options = options
     self.notAuthorizedRequest = function(req, res, next)
-        res:render("./libs/template/403.html")
+        res:status(403):render("./libs/template/403.html")
     end
     self.indexDirectory = function(filePath, routePath, req, res)
         local fileList = fs.readdirSync(filePath)
