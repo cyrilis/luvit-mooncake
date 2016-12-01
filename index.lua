@@ -26,7 +26,10 @@ local MoonCake = Emitter:extend()
 function MoonCake:initialize(options)
     options = options or {}
     self.options = options
-    self.notAuthorizedRequest = function(filePath, routePath, req, res)
+    self.notAuthorizedRequest = function(req, res, next)
+        res:render("./libs/template/403.html")
+    end
+    self.indexDirectory = function(filePath, routePath, req, res)
         local fileList = fs.readdirSync(filePath)
         local parentPathList = helpers.split2(routePath, "/")
         if routePath:sub(#routePath) == "/" then
@@ -51,7 +54,7 @@ function MoonCake:initialize(options)
                 size = fstat.size
             }
         end
-        res:render(path.resolve(module.dir, "./libs/directory.html"), data)
+        res:render(path.resolve(module.dir, "./libs/template/directory.html"), data)
     end
     self.isHttps = false
     if self.options.isHttps == true then
@@ -83,7 +86,7 @@ function MoonCake:start (port, host)
         --- Export server instance
         self.server = http.createServer(fn):listen(port, host)
     end
-    d(("Moon"):redbg(),("Cake"):yellowbg()," Server Listening at http://localhost:" .. tostring(port) .. "/")
+    d(("Moon"):redbg(),("Cake"):yellowbg()," Server Listening at http".. (self.isHttps and "s" or "") .."://".. host .. ":" .. tostring(port) .. "/")
 end
 
 function MoonCake:handleRequest(req, res)
@@ -198,20 +201,17 @@ end
 
 function MoonCake.notFound(req, res, err)
     if(err) then
-        serverError(err)
+        MoonCake.serverError(err)
     else
         p("404 - Not Found!")
-        res:status(404):send("not found")
+        res:status(404):render("./libs/template/404.html")
     end
 end
 
 function MoonCake.serverError (req, res, err)
-    p("MoonCake: Server Error", err)
-    if(error and DEBUG) then
-        res:status(500):json(error)
-    else
-        res:status(500):send("internal error")
-    end
+    d(("MoonCake: Server Error"):redbg():white())
+    p(err)
+    res:status(500):render("./libs/template/500.html")
 end
 
 function MoonCake:execute(req, res)
@@ -352,11 +352,23 @@ function MoonCake:all(path, fn)
 end
 
 function MoonCake:static (fileDir, options)
+    if type(options) == "string" then
+        options = {
+            root = options
+        }
+    end
+
+    if type(options) == "number" then
+        options = {
+            maxAge = options
+        }
+    end
     options = options or {}
     options.root = options.root or "/"
+    options.index = options.index or false
     print("Serving Directory:" .. fileDir)
     local headers = {}
-    local maxAge = options.maxAge or 15552000 -- half a year
+    local maxAge = options.maxAge or options.age or 15552000 -- half a year
     headers["Cache-Control"] = "public, max-age=" .. tostring(maxAge)
     local routePath = path.join(options.root, ":file:")
     self:get(routePath, function(req, res, next)
@@ -367,7 +379,12 @@ function MoonCake:static (fileDir, options)
             if fs.statSync(filePath).type == "file" then
                 res:sendFile(filePath, headers)
             else
-                self.notAuthorizedRequest(filePath, trimedRoutePath, req, res)
+                if options.index then
+                    self.indexDirectory(filePath, trimedRoutePath, req, res)
+                else
+                    self.notAuthorizedRequest(req, res, next)
+                end
+
             end
         else
             next()
