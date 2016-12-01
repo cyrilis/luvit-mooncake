@@ -201,7 +201,7 @@ end
 
 function MoonCake.notFound(req, res, err)
     if(err) then
-        MoonCake.serverError(err)
+        MoonCake.serverError(req, res, err)
     else
         p("404 - Not Found!")
         res:status(404):render("./libs/template/404.html")
