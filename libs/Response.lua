@@ -114,14 +114,14 @@ function ServerResponse:render(tpl, data)
       local tplString = fs.readFileSync(fpath)
       if not tplString then
         p("[Error]: File " .. fpath .. " Not Found.")
-        return ""
+        return "<pre><code>File: `".. fpath .. "` not found.</code></pre>"
       end
       local renderData = extend(extend(localData or {}, {currentPath = fpath, include = include }),data or {})
       local tplResult, err = etlua.render(tplString, renderData)
       if tplResult then
         return tplResult
       else
-        p("[Error Rendering HTML] ", err)
+        p("[Error Rendering HTML](:include) ", err)
         return "<h1>Internal Error</h1> <p style='color: red'>Error while render template :(</p>"
       end
     end
@@ -135,7 +135,7 @@ function ServerResponse:render(tpl, data)
     local result, error = etlua.render(templateString, renderData)
     if not result then
       p("[Error Rendering HTML] ", error)
-      self:fail("Internal Error")
+      self:status(500):render("./template/500.html")
     else
       self:send(result)
     end

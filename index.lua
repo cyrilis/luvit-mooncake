@@ -157,10 +157,8 @@ function MoonCake:handleRequest(req, res)
                         req.body[headers["name"]] = content
                     end
                 end
---                    req.files[tempname] = { path = tempname }
             else
                 local bodyObj
-
                 if contentType then
                     if req.headers["Content-Type"]:sub(1,16) == 'application/json' then
                         -- is this request JSON?
