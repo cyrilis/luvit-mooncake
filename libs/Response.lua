@@ -107,10 +107,10 @@ function ServerResponse:render(tpl, data)
     ServerResponse.flashData[sid] = nil
   end
   local renderData = extend(extend(localData, data or {}), flashData)
-  if viewEngine == "etlua" or path.extname(filePath) == ".elua" then
+  if viewEngine == "etlua" or path.extname(filePath) == ".etlua" then
     local templateString = fs.readFileSync(filePath)
     local include = function(fpath, data)
-      local fpath = path.resolve(filePath, fpath)
+      local fpath = path.resolve(path.dirname(filePath), fpath)
       local tplString = fs.readFileSync(fpath)
       if not tplString then
         p("[Error]: File " .. fpath .. " Not Found.")
