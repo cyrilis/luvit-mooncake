@@ -230,12 +230,20 @@ do
                 return nil, err
             end
             return function(...)
-                local buffer
-                buffer, err = self:run(fn, ...)
-                if buffer then
-                    return concat(buffer)
+                local success, result
+                local args = ...
+                success, result = pcall(function()
+                    local result, err = self:run(fn, args)
+                    if result then
+                        return result
+                    else
+                        return error(err)
+                    end
+                end)
+                if success then
+                    return concat(result)
                 else
-                    return nil, err
+                    return nil, result
                 end
             end
         end,
