@@ -29,24 +29,49 @@ end
 
 -- microsecond precision
 local ffi = require("ffi")
-if pcall(ffi.typeof, "struct timeval") then
-else
-    ffi.cdef[[
-        typedef long time_t;
 
-        typedef struct timeval {
-            time_t tv_sec;
-            time_t tv_usec;
-        } timeval;
+local getTime;
+do
+	if jit.os == "Windows" then
+		ffi.cdef [[
+			typedef unsigned long DWORD, *PDWORD, *LPDWORD;
+			typedef struct _FILETIME {
+			  DWORD dwLowDateTime;
+			  DWORD dwHighDateTime;
+			} FILETIME, *PFILETIME;
 
-        int gettimeofday(struct timeval* t, void* tzp);
-    ]]
-end
+			void GetSystemTimeAsFileTime ( FILETIME* );
+		]]
+		local ft = ffi.new ( "FILETIME[1]" )
+		getTime = function ( ) -- As found in luasocket's timeout.c
+			ffi.C.GetSystemTimeAsFileTime ( ft )
+			local t = tonumber ( ft[0].dwLowDateTime ) / 1e7 + tonumber ( ft[0].dwHighDateTime ) * ( 2^32 / 1e7 )
+			-- Convert to Unix Epoch time (time since January 1, 1970 (UTC))
+			t = t - 11644473600
+			return t * 1000
+		end
+	else -- Assume posix
 
-local gettimeofday_struct = ffi.new("timeval")
-local function getTime()
- 	ffi.C.gettimeofday(gettimeofday_struct, nil)
- 	return tonumber(gettimeofday_struct.tv_sec) * 1000 + tonumber(gettimeofday_struct.tv_usec / 1000)
+		if pcall(ffi.typeof, "struct timeval") then
+		else
+		    ffi.cdef[[
+		        typedef long time_t;
+
+		        typedef struct timeval {
+		            time_t tv_sec;
+		            time_t tv_usec;
+		        } timeval;
+
+		        int gettimeofday(struct timeval* t, void* tzp);
+		    ]]
+		end
+
+		local gettimeofday_struct = ffi.new("timeval")
+		getTime = function ()
+		 	ffi.C.gettimeofday(gettimeofday_struct, nil)
+		 	return tonumber(gettimeofday_struct.tv_sec) * 1000 + tonumber(gettimeofday_struct.tv_usec / 1000)
+		end
+	end
 end
 
 local function log (req, res)
