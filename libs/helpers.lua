@@ -48,7 +48,7 @@ do
 			local t = tonumber ( ft[0].dwLowDateTime ) / 1e7 + tonumber ( ft[0].dwHighDateTime ) * ( 2^32 / 1e7 )
 			-- Convert to Unix Epoch time (time since January 1, 1970 (UTC))
 			t = t - 11644473600
-			return t * 1000
+			return math.floor(t * 1000 + 0.5)
 		end
 	else -- Assume posix
 
