@@ -4,6 +4,7 @@ stages:
   - runScriptConfig:
       image: ubuntu
       shellScript: |-
+        apt-get update
         apt-get install curl
         curl -L https://github.com/luvit/lit/raw/master/get-lit.sh | sh
         mv ./lit /usr/local/bin/
