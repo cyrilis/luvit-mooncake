@@ -5,7 +5,7 @@ stages:
       image: ubuntu
       shellScript: |-
         apt-get update
-        apt-get install curl
+        apt-get install curl -y
         curl -L https://github.com/luvit/lit/raw/master/get-lit.sh | sh
         mv ./lit /usr/local/bin/
         mv ./luvit /usr/local/bin/
