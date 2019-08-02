@@ -9,6 +9,7 @@ end)
 server:route("get", "/", function(req, res)
   res:render("./views/index.html", {
     title= "Hello world from MoonCake!",
+    address = req.socket:address(),
     message = "You are welcome!",
     names = {"Tom", "Jerry", "Wof"},
     jquery  = '<script src="js/jquery.min.js"></script>'

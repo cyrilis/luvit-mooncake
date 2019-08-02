@@ -100,7 +100,7 @@ function ServerResponse:render(tpl, data)
   end
   local localData = self._local or {}
 
-  local flashData = { flash = nil}
+  local flashData = { flash = {}}
   if self.req.session and self.req.session.sid then
     local sid = self.req.session.sid
     flashData =  {flash = ServerResponse.flashData[sid] or {} }
