@@ -5,7 +5,8 @@ steps:
 - name: Install Luvit
   image: ubuntu
   commands:
-  - apt install curl
+  - sudo apt update
+  - sudo apt install curl -y
   - echo "Hello world!"
   - curl -L https://github.com/luvit/lit/raw/master/get-lit.sh | sh
   - mv luvit /usr/local/bin && mv lit /usr/local/bin
