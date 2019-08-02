@@ -1,6 +1,7 @@
 local MoonCake = require("../")
 local server = MoonCake:new()
 local env = require("env")
+local timer = require('timer')
 
 server:use(function(req, res, next)
     next()
@@ -97,3 +98,14 @@ MoonCake.serverError = function (req, res, error)
 end
 
 server:start(8081)
+
+local count = 0
+timer.setInterval(1000, function ()
+  count = count + 1
+  d((" " .. tostring(count) .. " "):bright():bluebg() .. (" ✓ "):bright():greenbg())
+end)
+timer.setTimeout(6000, function ()
+  d((" ------ALL TEST PASSED------ "):bright():magentabg())
+  d((" ----All is OK, Good bye!--- "):bright():greenbg())
+  process:exit()
+end)
